@@ -1,0 +1,18 @@
+ISO 15765-2 Support Library in C
+============
+
+## Testing
+
+The library includes a test suite that uses the `check` C unit test library.
+
+    $ make test
+
+## Authors
+
+Chris Peplin cpeplin@ford.com
+
+## License
+
+Copyright (c) 2013 Ford Motor Company
+
+Licensed under the BSD license.

@@ -1,5 +1,16 @@
-ISO 15765-2 Support Library in C
-============
+ISO-TP (ISO 15765-2) Support Library in C
+================================
+
+## API
+
+    IspTpHandler handler = isotp_init(42, NULL, NULL, NULL);
+    isotp_send(const uint8_t* payload, uint16_t payload_size);
+    while(true) {
+        isotp_handle_can_frame(42, data, 8);
+    }
+    isotp_destroy(&handler);
+
+// TODO should handlers take a context? depends on how we want to use this
 
 ## Testing
 

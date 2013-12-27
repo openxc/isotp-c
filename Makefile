@@ -1,6 +1,6 @@
 CC = gcc
 INCLUDES = -Isrc -Ideps/canutil/src
-CFLAGS = $(INCLUDES) -c -w -Wall -Werror -g -ggdb
+CFLAGS = $(INCLUDES) -c -w -Wall -Werror -g -ggdb -std=c99
 LDFLAGS =
 LDLIBS = -lcheck
 
@@ -16,11 +16,13 @@ ifneq ($(OSTYPE),Darwin)
 endif
 
 SRC = $(wildcard src/**/*.c)
-SRC = $(wildcard deps/**/*.c)
+SRC += $(wildcard deps/**/*.c)
 OBJS = $(SRC:.c=.o)
-TEST_SRC = $(wildcard $(TEST_DIR)/*.c)
+TEST_SRC = $(wildcard $(TEST_DIR)/test_*.c)
 TEST_OBJS = $(TEST_SRC:.c=.o)
 TESTS=$(patsubst %.c,%.bin,$(TEST_SRC))
+TEST_SUPPORT_SRC = $(TEST_DIR)/common.c
+TEST_SUPPORT_OBJS = $(TEST_SUPPORT_SRC:.c=.o)
 
 all: $(OBJS)
 
@@ -29,7 +31,7 @@ test: $(TESTS)
 	@export SHELLOPTS
 	@sh runtests.sh $(TEST_DIR)
 
-$(TEST_DIR)/%.bin: $(TEST_DIR)/%.o $(OBJS)
+$(TEST_DIR)/%.bin: $(TEST_DIR)/%.o $(OBJS) $(TEST_SUPPORT_OBJS)
 	@mkdir -p $(dir $@)
 	$(CC) $(LDFLAGS) $(CC_SYMBOLS) $(INCLUDES) -o $@ $^ $(LDLIBS)
 

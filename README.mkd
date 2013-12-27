@@ -12,6 +12,8 @@ ISO-TP (ISO 15765-2) Support Library in C
 
 // TODO should handlers take a context? depends on how we want to use this
 
+// TODO add an optional dispatcher to handle multiple open requests
+
 ## Testing
 
 The library includes a test suite that uses the `check` C unit test library.

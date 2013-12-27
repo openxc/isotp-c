@@ -1,0 +1,3 @@
+[submodule "deps/canutil"]
+	path = deps/canutil
+	url = https://github.com/openxc/canutil

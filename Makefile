@@ -1,5 +1,5 @@
 CC = gcc
-INCLUDES = -Isrc
+INCLUDES = -Isrc -Ideps/canutil/src
 CFLAGS = $(INCLUDES) -c -w -Wall -Werror -g -ggdb
 LDFLAGS =
 LDLIBS = -lcheck
@@ -16,6 +16,7 @@ ifneq ($(OSTYPE),Darwin)
 endif
 
 SRC = $(wildcard src/**/*.c)
+SRC = $(wildcard deps/**/*.c)
 OBJS = $(SRC:.c=.o)
 TEST_SRC = $(wildcard $(TEST_DIR)/*.c)
 TEST_OBJS = $(TEST_SRC:.c=.o)

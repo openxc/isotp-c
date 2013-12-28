@@ -43,42 +43,38 @@ void mock_send_can(const uint16_t arbitration_id, const uint8_t* data,
 void mock_set_timer(uint16_t time_ms, void (*callback)) {
 }
 
-void message_received(const uint16_t arbitration_id, const uint8_t* payload,
-        const uint16_t size) {
+void message_received(const IsoTpMessage* message) {
     debug("Received ISO-TP message:");
     message_was_received = true;
-    log_isotp_message(arbitration_id, payload, size);
-    last_message_received_arb_id = arbitration_id;
-    last_message_received_payload_size = size;
-    if(size > 0) {
-        memcpy(last_message_received_payload, payload, size);
+    log_isotp_message(message);
+    last_message_received_arb_id = message->arbitration_id;
+    last_message_received_payload_size = message->size;
+    if(message->size > 0) {
+        memcpy(last_message_received_payload, message->payload, message->size);
     }
 }
 
-void message_sent(const uint16_t arbitration_id, const uint8_t* payload,
-        const uint16_t size, const bool success) {
+void message_sent(const IsoTpMessage* message, const bool success) {
     if(success) {
         debug("Sent ISO-TP message:");
     } else {
         debug("Unable to send ISO-TP message:");
     }
-    log_isotp_message(arbitration_id, payload, size);
+    log_isotp_message(message);
 
-    last_message_sent_arb_id = arbitration_id;
-    last_message_sent_payload_size = size;
+    last_message_sent_arb_id = message->arbitration_id;
+    last_message_sent_payload_size = message->size;
     last_message_sent_status = success;
-    if(size > 0) {
-        memcpy(last_message_sent_payload, payload, size);
+    if(message->size > 0) {
+        memcpy(last_message_sent_payload, message->payload, message->size);
     }
 }
 
-void can_frame_sent(const uint16_t arbitration_id,
-        const uint8_t* payload, const uint8_t size) {
+void can_frame_sent(const uint16_t arbitration_id, const uint8_t* payload,
+        const uint8_t size) {
     debug("Sent CAN Frame:");
-    log_isotp_message(arbitration_id, payload, size);
-    for(int i = 0; i < size; i++) {
-        debug("0x%x", payload[i]);
-    }
+    // TODO add something like this to canutil
+    /* log_can_message(arbitration_id, payload, size); */
 }
 
 void setup() {

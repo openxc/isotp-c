@@ -13,25 +13,21 @@ const uint16_t MAX_CAN_FRAME_SIZE;
 const uint8_t ISO_TP_DEFAULT_RESPONSE_TIMEOUT;
 const bool ISO_TP_DEFAULT_FRAME_PADDING_STATUS;
 
+typedef struct {
+    const uint16_t arbitration_id;
+    const uint8_t* payload;
+    const uint16_t size;
+} IsoTpMessage;
+
 typedef void (*LogShim)(const char* message);
 typedef bool (*SendCanMessageShim)(const uint16_t arbitration_id,
         const uint8_t* data, const uint8_t size);
 typedef bool (*SetTimerShim)(uint16_t time_ms, void (*callback));
 
-typedef void (*IsoTpMessageReceivedHandler)(const uint16_t arbitration_id,
-        const uint8_t* payload, const uint16_t size);
-typedef void (*IsoTpMessageSentHandler)(const uint16_t arbitration_id,
-        const uint8_t* payload, const uint16_t size, const bool success);
-typedef void (*IsoTpCanFrameSentHandler)(const uint16_t arbitration_id,
-        const uint8_t* payload, const uint8_t size);
-
-// TODO this is really necessary and it would leak this library into the user's
-// code
-// typedef struct {
-    // const uint16_t arbitration_id;
-    // const uint8_t* payload;
-    // const uint16_t size;
-// } IsoTpMessage;
+typedef void (*IsoTpMessageReceivedHandler)(const IsoTpMessage* message);
+typedef void (*IsoTpMessageSentHandler)(const IsoTpMessage* message,
+        const bool success);
+typedef void (*IsoTpCanFrameSentHandler)(const IsoTpMessage* message);
 
 typedef struct {
     LogShim log;
@@ -88,19 +84,9 @@ IsoTpHandler isotp_init(IsoTpShims* shims,
  */
 void isotp_set_timeout(IsoTpHandler* handler, uint16_t timeout_ms);
 
-// TODO we have to make sure to copy the payload internall if it's more than 1
-// frame, the soure could go out of scope
-bool isotp_send(IsoTpHandler* handler, const uint8_t* payload,
-        uint16_t payload_size);
-
-void isotp_receive_can_frame(IsoTpHandler* handler,
-        const uint16_t arbitration_id, const uint64_t data,
-        const uint8_t length);
-
 void isotp_destroy(IsoTpHandler* handler);
 
-void log_isotp_message(const uint16_t arbitration_id, const uint8_t* payload,
-        const uint16_t size);
+void log_isotp_message(const IsoTpMessage* message);
 
 
 #ifdef __cplusplus

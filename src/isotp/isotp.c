@@ -74,6 +74,7 @@ bool isotp_send_single_frame(IsoTpHandler* handler, const uint8_t* payload,
 
 bool isotp_send_multi_frame(IsoTpHandler* handler, const uint8_t* payload,
         uint16_t size) {
+    handler->shims->log("Only single frame messages are supported");
     return false;
 }
 

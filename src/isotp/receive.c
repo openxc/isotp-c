@@ -17,9 +17,11 @@ void isotp_receive_can_frame(IsoTpHandler* handler,
 
     // TODO use CanMessage struct from canutil library - allocate payload buffer
     // on stack, 8 bytes
-    // TODO  this function should receive uint64_t...
     IsoTpProtocolControlInformation pci = (IsoTpProtocolControlInformation)
             getBitField(data, 0, 4, false);
+
+    IsoTpProtocolControlInformation pci = (IsoTpProtocolControlInformation)
+            getNibble(0, data, 64, LITTE_ENDIAN);
 
     // TODO this is messed up! need a better API for grabbing bytes
     uint8_t payload_length = getBitField(data, 4, 4, false);

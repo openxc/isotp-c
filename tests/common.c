@@ -26,6 +26,7 @@ void debug(const char* format, ...) {
     va_list args;
     va_start(args, format);
     vprintf(format, args);
+    printf("\r\n");
     va_end(args);
 }
 
@@ -39,6 +40,7 @@ void mock_set_timer(uint16_t time_ms, void (*callback)) {
 void message_received(const uint16_t arbitration_id, const uint8_t* payload,
         const uint16_t size) {
     debug("Received ISO-TP message:");
+    message_was_received = true;
     log_isotp_message(arbitration_id, payload, size);
     last_message_received_arb_id = arbitration_id;
     last_message_received_payload_size = size;
@@ -54,7 +56,6 @@ void message_sent(const bool success, const uint16_t arbitration_id,
     }
     log_isotp_message(arbitration_id, payload, size);
 
-    message_was_received = true;
     last_message_sent_arb_id = arbitration_id;
     last_message_sent_payload_size = size;
     memcpy(last_message_sent_payload, payload, size);

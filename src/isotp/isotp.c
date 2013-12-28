@@ -1,15 +1,32 @@
 #include <isotp/isotp.h>
+#include <isotp/receive.h>
+#include <bitfield/bitfield.h>
 
 const uint16_t MAX_ISO_TP_MESSAGE_SIZE = 4096;
 const uint16_t MAX_CAN_FRAME_SIZE = 8;
 const uint8_t ISO_TP_DEFAULT_RESPONSE_TIMEOUT = 100;
 const bool ISO_TP_DEFAULT_FRAME_PADDING_STATUS = true;
 
-void isotp_receive_can_frame(const uint16_t arbitration_id, const uint8_t* data,
-        const uint8_t length) {
-    //match with any request we made
-    //handle flow control if necessary
-    //call callback if message completed
+void isotp_receive_can_frame(IsoTpHandler* handler,
+        const uint16_t arbitration_id, const uint8_t* data, const uint8_t length) {
+    if(arbitration_id != handler->arbitration_id){
+        return;
+    }
+
+    // TODO use CanMessage struct from canutil library - allocate payload buffer
+    // on stack, 8 bytes
+    // TODO  this function should receive uint64_t...
+    IsoTpProtocolControlInformation pci = (IsoTpProtocolControlInformation)
+            getBitField((uint64_t)data, 0, 2, false);
+
+    switch(pci) {
+        case PCI_SINGLE:
+            isotp_handle_single_frame(handler, arbitration_id, data, length);
+            break;
+        default:
+            handler->shims->log("Only single frame messages are supported");
+            break;
+    }
 }
 
 bool isotp_send(const uint8_t* payload, uint16_t payload_size) {
@@ -36,6 +53,7 @@ IsoTpHandler isotp_init(IsoTpShims* shims, uint16_t arbitration_id,
         IsoTpCanFrameSentHandler can_frame_sent_callback) {
     IsoTpHandler handler = {
         shims: shims,
+        arbitration_id: arbitration_id,
         message_received_callback: message_received_callback,
         message_sent_callback: message_sent_callback,
         can_frame_sent_callback: can_frame_sent_callback,

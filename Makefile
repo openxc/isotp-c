@@ -16,10 +16,9 @@ ifneq ($(OSTYPE),Darwin)
 endif
 
 SRC = $(wildcard src/**/*.c)
-SRC += $(wildcard deps/**/*.c)
+SRC += $(wildcard deps/canutil/src/**/*.c)
 OBJS = $(SRC:.c=.o)
 TEST_SRC = $(wildcard $(TEST_DIR)/test_*.c)
-TEST_OBJS = $(TEST_SRC:.c=.o)
 TESTS=$(patsubst %.c,%.bin,$(TEST_SRC))
 TEST_SUPPORT_SRC = $(TEST_DIR)/common.c
 TEST_SUPPORT_OBJS = $(TEST_SUPPORT_SRC:.c=.o)

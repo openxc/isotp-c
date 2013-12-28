@@ -1,0 +1,19 @@
+#ifndef __ISOTP_RECEIVE_H__
+#define __ISOTP_RECEIVE_H__
+
+#include <isotp/isotp.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void isotp_handle_single_frame(IsoTpHandler* handler, const uint16_t arbitration_id,
+        const uint8_t* data, const uint8_t length);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // __ISOTP_RECEIVE_H__

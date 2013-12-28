@@ -42,7 +42,7 @@ typedef struct {
 
 typedef struct {
     IsoTpShims* shims;
-    uint16_t arb_id;
+    uint16_t arbitration_id;
     IsoTpMessageReceivedHandler message_received_callback;
     IsoTpMessageSentHandler message_sent_callback;
     IsoTpCanFrameSentHandler can_frame_sent_callback;
@@ -58,16 +58,16 @@ typedef struct {
 } IsoTpHandler;
 
 typedef enum {
-    PCI_SINGLE,
-    PCI_FIRST_FRAME,
-    PCI_CONSECUTIVE_FRAME,
-    PCI_FLOW_CONTROL_FRAME
+    PCI_SINGLE = 0x0,
+    PCI_FIRST_FRAME = 0x1,
+    PCI_CONSECUTIVE_FRAME = 0x2,
+    PCI_FLOW_CONTROL_FRAME = 0x3
 } IsoTpProtocolControlInformation;
 
 typedef enum {
-    PCI_FLOW_STATUS_CONTINUE,
-    PCI_FLOW_STATUS_WAIT,
-    PCI_FLOW_STATUS_OVERFLOW
+    PCI_FLOW_STATUS_CONTINUE = 0x0,
+    PCI_FLOW_STATUS_WAIT = 0x1,
+    PCI_FLOW_STATUS_OVERFLOW = 0x2
 } IsoTpFlowStatus;
 
 IsoTpShims isotp_init_shims(LogShim log,
@@ -93,7 +93,8 @@ void isotp_set_timeout(IsoTpHandler* handler, uint16_t timeout_ms);
 // frame, the soure could go out of scope
 bool isotp_send(const uint8_t* payload, uint16_t payload_size);
 
-void isotp_receive_can_frame(const uint16_t arbitration_id, const uint8_t* data,
+void isotp_receive_can_frame(IsoTpHandler* handler,
+        const uint16_t arbitration_id, const uint8_t* data,
         const uint8_t length);
 
 void isotp_destroy(IsoTpHandler* handler);

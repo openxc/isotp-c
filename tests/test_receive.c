@@ -28,7 +28,7 @@ extern void setup();
 START_TEST (test_receive_wrong_id)
 {
     const uint8_t data[8] = {0};
-    isotp_receive_can_frame(0x100, data, sizeof(data));
+    isotp_receive_can_frame(&ISOTP_HANDLER, 0x100, data, sizeof(data));
     fail_if(message_was_received);
 }
 END_TEST
@@ -37,7 +37,7 @@ START_TEST (test_receive_bad_pci)
 {
     // 4 is a reserved number for the PCI field - only 0-3 are allowed
     const uint8_t data[8] = {0x40};
-    isotp_receive_can_frame(0x2a, data, sizeof(data));
+    isotp_receive_can_frame(&ISOTP_HANDLER, 0x2a, data, sizeof(data));
     fail_if(message_was_received);
 }
 END_TEST
@@ -45,7 +45,7 @@ END_TEST
 START_TEST (test_receive_single_frame)
 {
     const uint8_t data[8] = {0x0, 0x12, 0x34};
-    isotp_receive_can_frame(0x2a, data, sizeof(data));
+    isotp_receive_can_frame(&ISOTP_HANDLER, 0x2a, data, sizeof(data));
     fail_unless(message_was_received);
     ck_assert_int_eq(last_message_received_arb_id, 0x2a);
     ck_assert_int_eq(last_message_received_payload_size, 2);

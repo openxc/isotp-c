@@ -25,15 +25,34 @@ extern uint8_t last_message_sent_payload_size;
 
 extern void setup();
 
+START_TEST (test_send_empty_payload)
+{
+    fail_unless(isotp_send(&ISOTP_HANDLER, NULL, 0));
+    ck_assert_int_eq(last_message_sent_arb_id, ISOTP_HANDLER.arbitration_id);
+    fail_unless(last_message_sent_status);
+    ck_assert_int_eq(last_message_sent_payload[0], NULL);
+    ck_assert_int_eq(last_message_sent_payload_size, 0);
+}
+END_TEST
+
 START_TEST (test_send_single_frame)
 {
-    fail_if(true);
+    const uint8_t payload[] = {0x12, 0x34};
+    fail_unless(isotp_send(&ISOTP_HANDLER, &payload, sizeof(payload)));
+    ck_assert_int_eq(last_message_sent_arb_id, ISOTP_HANDLER.arbitration_id);
+    fail_unless(last_message_sent_status);
+    ck_assert_int_eq(last_message_sent_payload[0], 0x12);
+    ck_assert_int_eq(last_message_sent_payload[1], 0x34);
+    ck_assert_int_eq(last_message_sent_payload_size, 2);
 }
 END_TEST
 
 START_TEST (test_send_multi_frame)
 {
-    fail_if(true);
+    const uint8_t payload[] = {0x12, 0x34, 0x56, 0x78, 0x90, 0x01, 0x23,
+            0x45, 0x67, 0x89};
+    bool status = isotp_send(&ISOTP_HANDLER, &payload, sizeof(payload));
+    fail_if(status);
 }
 END_TEST
 
@@ -41,6 +60,7 @@ Suite* testSuite(void) {
     Suite* s = suite_create("iso15765");
     TCase *tc_core = tcase_create("send");
     tcase_add_checked_fixture(tc_core, setup, NULL);
+    tcase_add_test(tc_core, test_send_empty_payload);
     tcase_add_test(tc_core, test_send_single_frame);
     tcase_add_test(tc_core, test_send_multi_frame);
     suite_add_tcase(s, tc_core);

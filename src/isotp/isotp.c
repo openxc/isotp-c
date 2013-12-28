@@ -7,6 +7,12 @@ const uint16_t MAX_CAN_FRAME_SIZE = 8;
 const uint8_t ISO_TP_DEFAULT_RESPONSE_TIMEOUT = 100;
 const bool ISO_TP_DEFAULT_FRAME_PADDING_STATUS = true;
 
+const uint8_t PCI_START_BIT = 0;
+const uint8_t PCI_WIDTH = 4;
+const uint8_t PAYLOAD_LENGTH_START_BIT = 4;
+const uint8_t PAYLOAD_LENGTH_WIDTH = 4;
+const uint8_t PAYLOAD_START_BIT = 8;
+
 void isotp_receive_can_frame(IsoTpHandler* handler,
         const uint16_t arbitration_id, const uint64_t data,
         const uint8_t length) {
@@ -39,9 +45,41 @@ void isotp_receive_can_frame(IsoTpHandler* handler,
     }
 }
 
-bool isotp_send(const uint8_t* payload, uint16_t size) {
-     // we determine if it's single/multi frame and start the send
+void isotp_complete_send(IsoTpHandler* handler, const uint8_t* payload,
+        uint8_t size, bool status) {
+    handler->message_sent_callback(handler->arbitration_id, payload, size,
+            status);
 }
+
+bool isotp_send_single_frame(IsoTpHandler* handler, const uint8_t* payload,
+        uint8_t size) {
+    uint64_t data;
+    setBitField(&data, PCI_SINGLE, PCI_START_BIT, PCI_WIDTH);
+    setBitField(&data, size, PAYLOAD_LENGTH_START_BIT, PAYLOAD_LENGTH_WIDTH);
+    // TODO this is probably wrong
+    if(size > 0) {
+        setBitField(&data, *payload, PAYLOAD_START_BIT, size * 8);
+    }
+    handler->shims->send_can_message(handler->arbitration_id, payload, size);
+    isotp_complete_send(handler, payload, size, true);
+    return true;
+}
+
+bool isotp_send_multi_frame(IsoTpHandler* handler, const uint8_t* payload,
+        uint16_t size) {
+    return false;
+}
+
+bool isotp_send(IsoTpHandler* handler, const uint8_t* payload,
+        uint16_t size) {
+     // we determine if it's single/multi frame and start the send
+     if(size < 8) {
+         return isotp_send_single_frame(handler, payload, size);
+     } else {
+         return isotp_send_multi_frame(handler, payload, size);
+     }
+}
+
 
 void isotp_set_timeout(IsoTpHandler* handler, uint16_t timeout_ms) {
     handler->timeout_ms = timeout_ms;

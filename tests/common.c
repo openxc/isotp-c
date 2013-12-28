@@ -44,11 +44,13 @@ void message_received(const uint16_t arbitration_id, const uint8_t* payload,
     log_isotp_message(arbitration_id, payload, size);
     last_message_received_arb_id = arbitration_id;
     last_message_received_payload_size = size;
-    memcpy(last_message_received_payload, payload, size);
+    if(size > 0) {
+        memcpy(last_message_received_payload, payload, size);
+    }
 }
 
-void message_sent(const bool success, const uint16_t arbitration_id,
-        const uint8_t* payload, const uint16_t size) {
+void message_sent(const uint16_t arbitration_id, const uint8_t* payload,
+        const uint16_t size, const bool success) {
     if(success) {
         debug("Sent ISO-TP message:");
     } else {
@@ -58,7 +60,10 @@ void message_sent(const bool success, const uint16_t arbitration_id,
 
     last_message_sent_arb_id = arbitration_id;
     last_message_sent_payload_size = size;
-    memcpy(last_message_sent_payload, payload, size);
+    last_message_sent_status = success;
+    if(size > 0) {
+        memcpy(last_message_sent_payload, payload, size);
+    }
 }
 
 void can_frame_sent(const uint16_t arbitration_id,
@@ -72,13 +77,16 @@ void can_frame_sent(const uint16_t arbitration_id,
     can_frame_was_sent = true;
     last_can_frame_sent_arb_id = arbitration_id;
     last_can_payload_sent = size;
-    memcpy(last_can_payload_sent, payload, size);
+    if(size > 0) {
+        memcpy(last_can_payload_sent, payload, size);
+    }
 }
 
 void setup() {
     SHIMS = isotp_init_shims(debug, mock_send_can, mock_set_timer);
     ISOTP_HANDLER = isotp_init(&SHIMS, 0x2a, message_received, message_sent,
             can_frame_sent);
+    last_message_sent_payload = malloc(MAX_ISO_TP_MESSAGE_SIZE);
     last_message_received_payload = malloc(MAX_ISO_TP_MESSAGE_SIZE);
     last_message_sent_status = false;
     message_was_received = false;

@@ -14,15 +14,14 @@ const uint8_t ISO_TP_DEFAULT_RESPONSE_TIMEOUT;
 const bool ISO_TP_DEFAULT_FRAME_PADDING_STATUS;
 
 typedef void (*LogShim)(const char* message);
-typedef bool (*SendCanMessageShim)(const uint16_t arbitration_id, const uint8_t* data,
-            const uint8_t size);
+typedef bool (*SendCanMessageShim)(const uint16_t arbitration_id,
+        const uint8_t* data, const uint8_t size);
 typedef bool (*SetTimerShim)(uint16_t time_ms, void (*callback));
 
 typedef void (*IsoTpMessageReceivedHandler)(const uint16_t arbitration_id,
         const uint8_t* payload, const uint16_t size);
-typedef void (*IsoTpMessageSentHandler)(const bool success,
-        const uint16_t arbitration_id, const uint8_t* payload,
-        const uint16_t size);
+typedef void (*IsoTpMessageSentHandler)(const uint16_t arbitration_id,
+        const uint8_t* payload, const uint16_t size, const bool success);
 typedef void (*IsoTpCanFrameSentHandler)(const uint16_t arbitration_id,
         const uint8_t* payload, const uint8_t size);
 
@@ -91,7 +90,8 @@ void isotp_set_timeout(IsoTpHandler* handler, uint16_t timeout_ms);
 
 // TODO we have to make sure to copy the payload internall if it's more than 1
 // frame, the soure could go out of scope
-bool isotp_send(const uint8_t* payload, uint16_t payload_size);
+bool isotp_send(IsoTpHandler* handler, const uint8_t* payload,
+        uint16_t payload_size);
 
 void isotp_receive_can_frame(IsoTpHandler* handler,
         const uint16_t arbitration_id, const uint64_t data,

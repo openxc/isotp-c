@@ -94,7 +94,7 @@ void isotp_set_timeout(IsoTpHandler* handler, uint16_t timeout_ms);
 bool isotp_send(const uint8_t* payload, uint16_t payload_size);
 
 void isotp_receive_can_frame(IsoTpHandler* handler,
-        const uint16_t arbitration_id, const uint8_t* data,
+        const uint16_t arbitration_id, const uint64_t data,
         const uint8_t length);
 
 void isotp_destroy(IsoTpHandler* handler);

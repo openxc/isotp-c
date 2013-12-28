@@ -9,7 +9,7 @@ extern IsoTpShims SHIMS;
 extern IsoTpHandler ISOTP_HANDLER;
 
 extern uint16_t last_can_frame_sent_arb_id;
-extern uint8_t last_can_payload_sent;
+extern uint8_t last_can_payload_sent[8];
 extern uint8_t last_can_payload_size;
 extern bool can_frame_was_sent;
 
@@ -32,6 +32,11 @@ START_TEST (test_send_empty_payload)
     fail_unless(last_message_sent_status);
     ck_assert_int_eq(last_message_sent_payload[0], NULL);
     ck_assert_int_eq(last_message_sent_payload_size, 0);
+
+    ck_assert_int_eq(last_can_frame_sent_arb_id, ISOTP_HANDLER.arbitration_id);
+    fail_unless(can_frame_was_sent);
+    ck_assert_int_eq(last_can_payload_sent[0], 0x0);
+    ck_assert_int_eq(last_can_payload_size, 1);
 }
 END_TEST
 
@@ -44,6 +49,13 @@ START_TEST (test_send_single_frame)
     ck_assert_int_eq(last_message_sent_payload[0], 0x12);
     ck_assert_int_eq(last_message_sent_payload[1], 0x34);
     ck_assert_int_eq(last_message_sent_payload_size, 2);
+
+    ck_assert_int_eq(last_can_frame_sent_arb_id, ISOTP_HANDLER.arbitration_id);
+    fail_unless(can_frame_was_sent);
+    ck_assert_int_eq(last_can_payload_sent[0], 0x2);
+    ck_assert_int_eq(last_can_payload_sent[1], 0x12);
+    ck_assert_int_eq(last_can_payload_sent[2], 0x34);
+    ck_assert_int_eq(last_can_payload_size, 3);
 }
 END_TEST
 
@@ -53,6 +65,8 @@ START_TEST (test_send_multi_frame)
             0x45, 0x67, 0x89};
     bool status = isotp_send(&ISOTP_HANDLER, &payload, sizeof(payload));
     fail_if(status);
+    fail_if(last_message_sent_status);
+    fail_if(can_frame_was_sent);
 }
 END_TEST
 

@@ -8,7 +8,7 @@ IsoTpShims SHIMS;
 IsoTpHandler ISOTP_HANDLER;
 
 uint16_t last_can_frame_sent_arb_id;
-uint8_t last_can_payload_sent;
+uint8_t last_can_payload_sent[8];
 uint8_t last_can_payload_size;
 bool can_frame_was_sent;
 
@@ -32,6 +32,12 @@ void debug(const char* format, ...) {
 
 void mock_send_can(const uint16_t arbitration_id, const uint8_t* data,
         const uint8_t size) {
+    can_frame_was_sent = true;
+    last_can_frame_sent_arb_id = arbitration_id;
+    last_can_payload_size = size;
+    if(size > 0) {
+        memcpy(last_can_payload_sent, data, size);
+    }
 }
 
 void mock_set_timer(uint16_t time_ms, void (*callback)) {
@@ -73,13 +79,6 @@ void can_frame_sent(const uint16_t arbitration_id,
     for(int i = 0; i < size; i++) {
         debug("0x%x", payload[i]);
     }
-
-    can_frame_was_sent = true;
-    last_can_frame_sent_arb_id = arbitration_id;
-    last_can_payload_sent = size;
-    if(size > 0) {
-        memcpy(last_can_payload_sent, payload, size);
-    }
 }
 
 void setup() {
@@ -88,6 +87,7 @@ void setup() {
             can_frame_sent);
     last_message_sent_payload = malloc(MAX_ISO_TP_MESSAGE_SIZE);
     last_message_received_payload = malloc(MAX_ISO_TP_MESSAGE_SIZE);
+    memset(last_can_payload_sent, 0, sizeof(last_can_payload_sent));
     last_message_sent_status = false;
     message_was_received = false;
     can_frame_was_sent = false;

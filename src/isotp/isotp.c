@@ -7,11 +7,11 @@ const uint16_t MAX_CAN_FRAME_SIZE = 8;
 const uint8_t ISO_TP_DEFAULT_RESPONSE_TIMEOUT = 100;
 const bool ISO_TP_DEFAULT_FRAME_PADDING_STATUS = true;
 
-const uint8_t PCI_START_BIT = 0;
-const uint8_t PCI_WIDTH = 4;
-const uint8_t PAYLOAD_LENGTH_START_BIT = 4;
-const uint8_t PAYLOAD_LENGTH_WIDTH = 4;
-const uint8_t PAYLOAD_START_BIT = 8;
+#define PCI_START_BIT 0
+#define PCI_WIDTH 4
+#define PAYLOAD_LENGTH_START_BIT PCI_START_BIT + PCI_WIDTH
+#define PAYLOAD_LENGTH_WIDTH 4
+#define PAYLOAD_START_BIT PAYLOAD_LENGTH_START_BIT + PAYLOAD_LENGTH_WIDTH
 
 void isotp_receive_can_frame(IsoTpHandler* handler,
         const uint16_t arbitration_id, const uint64_t data,
@@ -53,14 +53,21 @@ void isotp_complete_send(IsoTpHandler* handler, const uint8_t* payload,
 
 bool isotp_send_single_frame(IsoTpHandler* handler, const uint8_t* payload,
         uint8_t size) {
-    uint64_t data;
+    uint64_t data = 0;
     setBitField(&data, PCI_SINGLE, PCI_START_BIT, PCI_WIDTH);
     setBitField(&data, size, PAYLOAD_LENGTH_START_BIT, PAYLOAD_LENGTH_WIDTH);
-    // TODO this is probably wrong
-    if(size > 0) {
-        setBitField(&data, *payload, PAYLOAD_START_BIT, size * 8);
+    // TODO need a better bitfield API to support this - use byte array instead
+    // of uint64_t and specify desired total width
+    for(int i = 0; i < size; i++) {
+        setBitField(&data, payload[i], PAYLOAD_START_BIT + i * 8, 8);
     }
-    handler->shims->send_can_message(handler->arbitration_id, payload, size);
+
+    uint8_t data_array[size + 1];
+    for(int i = 0; i < sizeof(data_array); i++) {
+        // TODO need getByte(x) function
+        data_array[i] = getBitField(data, i * 8, 8, false);
+    }
+    handler->shims->send_can_message(handler->arbitration_id, data_array, sizeof(data_array));
     isotp_complete_send(handler, payload, size, true);
     return true;
 }

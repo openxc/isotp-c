@@ -9,26 +9,19 @@ void isotp_complete_receive(IsoTpHandler* handler, IsoTpMessage* message) {
 }
 
 void isotp_receive_can_frame(IsoTpHandler* handler,
-        const uint16_t arbitration_id, const uint64_t data,
-        const uint8_t length) {
-    if(arbitration_id != handler->arbitration_id){
+        const uint16_t arbitration_id, const uint8_t data[],
+        const uint8_t data_length) {
+    if(arbitration_id != handler->arbitration_id || data_length < 1) {
         return;
     }
 
-    // TODO use CanMessage struct from canutil library - allocate payload buffer
-    // on stack, 8 bytes
     IsoTpProtocolControlInformation pci = (IsoTpProtocolControlInformation)
-            getBitField(data, 0, 4, false);
+            get_nibble(data, data_length, 0);
 
-    IsoTpProtocolControlInformation pci = (IsoTpProtocolControlInformation)
-            getNibble(0, data, 64, LITTE_ENDIAN);
-
-    // TODO this is messed up! need a better API for grabbing bytes
-    uint8_t payload_length = getBitField(data, 4, 4, false);
+    uint8_t payload_length = get_nibble(data, data_length, 1);
     uint8_t payload[payload_length];
-    uint64_t flipped_data = __builtin_bswap64(data);
-    if(payload_length > 0) {
-        memcpy(payload, &(((uint8_t*)&flipped_data)[1]), payload_length);
+    if(payload_length > 0 && data_length > 0) {
+        memcpy(payload, &data[1], payload_length);
     }
 
     IsoTpMessage message = {

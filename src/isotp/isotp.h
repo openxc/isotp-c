@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define CAN_MESSAGE_BYTE_SIZE 8
+
 #ifdef __cplusplus
 extern "C" {
 #endif

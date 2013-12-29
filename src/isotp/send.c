@@ -1,10 +1,8 @@
 #include <isotp/send.h>
 
-#define PCI_START_BIT 0
-#define PCI_WIDTH 4
-#define PAYLOAD_LENGTH_START_BIT PCI_START_BIT + PCI_WIDTH
-#define PAYLOAD_LENGTH_WIDTH 4
-#define PAYLOAD_START_BIT PAYLOAD_LENGTH_START_BIT + PAYLOAD_LENGTH_WIDTH
+#define PCI_NIBBLE_INDEX 0
+#define PAYLOAD_LENGTH_NIBBLE_INDEX 1
+#define PAYLOAD_BYTE_INDEX 1
 
 void isotp_complete_send(IsoTpHandler* handler, IsoTpMessage* message,
         bool status) {
@@ -12,21 +10,24 @@ void isotp_complete_send(IsoTpHandler* handler, IsoTpMessage* message,
 }
 
 bool isotp_send_single_frame(IsoTpHandler* handler, IsoTpMessage* message) {
-    uint64_t data = 0;
-    setBitField(&data, PCI_SINGLE, PCI_START_BIT, PCI_WIDTH);
-    setBitField(&data, message->size, PAYLOAD_LENGTH_START_BIT, PAYLOAD_LENGTH_WIDTH);
-    // TODO need a better bitfield API to support this - use byte array instead
-    // of uint64_t and specify desired total width
-    for(int i = 0; i < message->size; i++) {
-        setBitField(&data, message->payload[i], PAYLOAD_START_BIT + i * 8, 8);
+    uint8_t can_data[CAN_MESSAGE_BYTE_SIZE] = {0};
+    if(!set_nibble(PCI_NIBBLE_INDEX, PCI_SINGLE, can_data, sizeof(can_data))) {
+        handler->shims->log("Unable to set PCI in CAN data");
+        return false;
     }
 
-    uint8_t data_array[message->size + 1];
-    for(int i = 0; i < sizeof(data_array); i++) {
-        // TODO need getByte(x) function
-        data_array[i] = getBitField(data, i * 8, 8, false);
+    if(!set_nibble(PAYLOAD_LENGTH_NIBBLE_INDEX, message->size, can_data,
+                sizeof(can_data))) {
+        handler->shims->log("Unable to set payload length in CAN data");
+        return false;
     }
-    handler->shims->send_can_message(message->arbitration_id, data_array, sizeof(data_array));
+
+    if(message->size > 0) {
+        memcpy(&can_data[1], message->payload, message->size);
+    }
+
+    handler->shims->send_can_message(message->arbitration_id, can_data,
+            1 + message->size);
     isotp_complete_send(handler, message, true);
     return true;
 }

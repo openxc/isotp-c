@@ -1,5 +1,5 @@
 CC = gcc
-INCLUDES = -Isrc -Ideps/canutil/src
+INCLUDES = -Isrc -Ideps/bitfield-c/src
 CFLAGS = $(INCLUDES) -c -w -Wall -Werror -g -ggdb -std=c99
 LDFLAGS =
 LDLIBS = -lcheck
@@ -16,7 +16,7 @@ ifneq ($(OSTYPE),Darwin)
 endif
 
 SRC = $(wildcard src/**/*.c)
-SRC += $(wildcard deps/canutil/src/**/*.c)
+SRC += $(wildcard deps/bitfield-c/src/**/*.c)
 OBJS = $(SRC:.c=.o)
 TEST_SRC = $(wildcard $(TEST_DIR)/test_*.c)
 TESTS=$(patsubst %.c,%.bin,$(TEST_SRC))

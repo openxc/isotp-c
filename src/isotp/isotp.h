@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #define CAN_MESSAGE_BYTE_SIZE 8
 
@@ -21,7 +22,7 @@ typedef struct {
     const uint16_t size;
 } IsoTpMessage;
 
-typedef void (*LogShim)(const char* message);
+typedef void (*LogShim)(const char* message, ...);
 typedef bool (*SendCanMessageShim)(const uint16_t arbitration_id,
         const uint8_t* data, const uint8_t size);
 typedef bool (*SetTimerShim)(uint16_t time_ms, void (*callback));
@@ -88,8 +89,8 @@ void isotp_set_timeout(IsoTpHandler* handler, uint16_t timeout_ms);
 
 void isotp_destroy(IsoTpHandler* handler);
 
-void log_isotp_message(const IsoTpMessage* message);
-
+void isotp_message_to_string(const IsoTpMessage* message, char* destination,
+        size_t destination_length);
 
 #ifdef __cplusplus
 }

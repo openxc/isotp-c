@@ -39,15 +39,9 @@ IsoTpHandler isotp_init(IsoTpShims* shims, uint16_t arbitration_id,
     return handler;
 }
 
-// TODO this would be better as a "isotp_message_to_string"
-void log_isotp_message(const IsoTpMessage* message) {
-    debug("ID: 0x%02x", message->arbitration_id);
-    if(message->size > 0) {
-        debug("Payload:");
-        for(int i = 0; i < message->size; i++) {
-            debug("0x%x", message->payload[i]);
-        }
-    }  else {
-        debug("(no payload)");
-    }
+void isotp_message_to_string(const IsoTpMessage* message, char* destination,
+        size_t destination_length) {
+    snprintf(destination, destination_length,"ID: 0x%02x, Payload: 0x%llx",
+            // TODO the payload may be backwards here
+            message->arbitration_id, message->payload);
 }

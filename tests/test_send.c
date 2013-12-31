@@ -1,4 +1,4 @@
-#include <isotp/isotp.h>
+#include <isotp/receive.h>
 #include <check.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -30,7 +30,7 @@ extern void setup();
 START_TEST (test_send_empty_payload)
 {
     uint16_t arbitration_id = 0x2a;
-    IsoTpHandle foo = isotp_send(&SHIMS, arbitration_id, NULL, 0, message_sent);
+    IsoTpHandle handle = isotp_send(&SHIMS, arbitration_id, NULL, 0, message_sent);
     fail_unless(handle.success);
     fail_unless(handle.completed);
     ck_assert_int_eq(last_message_sent_arb_id, arbitration_id);

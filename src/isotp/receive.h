@@ -14,9 +14,6 @@ void isotp_complete_receive(IsoTpHandle* handle, IsoTpMessage* message);
 void isotp_handle_single_frame(IsoTpHandle* handle,
         IsoTpMessage* message);
 
-IsoTpHandle isotp_receive(IsoTpShims* shims, const uint16_t arbitration_id,
-        IsoTpMessageReceivedHandler callback);
-
 #ifdef __cplusplus
 }
 #endif

@@ -111,6 +111,12 @@ void isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
 void isotp_message_to_string(const IsoTpMessage* message, char* destination,
         size_t destination_length);
 
+IsoTpHandle isotp_send(IsoTpShims* shims, const uint16_t arbitration_id,
+        const uint8_t* payload, uint16_t size,
+        IsoTpMessageSentHandler callback);
+
+IsoTpHandle isotp_receive(IsoTpShims* shims, const uint16_t arbitration_id,
+        IsoTpMessageReceivedHandler callback);
 
 #ifdef __cplusplus
 }

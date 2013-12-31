@@ -11,8 +11,7 @@ extern "C" {
 
 void isotp_complete_receive(IsoTpHandle* handle, IsoTpMessage* message);
 
-void isotp_handle_single_frame(IsoTpHandle* handle,
-        IsoTpMessage* message);
+bool isotp_handle_single_frame(IsoTpHandle* handle, IsoTpMessage* message);
 
 #ifdef __cplusplus
 }

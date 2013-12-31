@@ -1,8 +1,8 @@
 #include <isotp/receive.h>
 
-void isotp_handle_single_frame(IsoTpHandle* handle,
-        IsoTpMessage* message) {
+bool isotp_handle_single_frame(IsoTpHandle* handle, IsoTpMessage* message) {
     isotp_complete_receive(handle, message);
+    return true;
 }
 
 void isotp_complete_receive(IsoTpHandle* handle, IsoTpMessage* message) {

@@ -33,23 +33,26 @@ void isotp_message_to_string(const IsoTpMessage* message, char* destination,
             message->arbitration_id, message->payload);
 }
 
-void isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
+bool isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
         const uint16_t arbitration_id, const uint8_t data[],
         const uint8_t data_length) {
+    bool message_completed = false;
+
     if(data_length < 1) {
-        return;
+        return message_completed;
     }
 
     if(handle->type == ISOTP_HANDLE_RECEIVING) {
         if(handle->receive_handle.arbitration_id != arbitration_id) {
-            return;
+            return message_completed;
         }
     } else if(handle->type == ISOTP_HANDLE_SENDING) {
         if(handle->send_handle.receiving_arbitration_id != arbitration_id) {
-            return;
+            return message_completed;
         }
     } else {
         shims->log("The ISO-TP handle is corrupt");
+        return message_completed;
     }
 
     IsoTpProtocolControlInformation pci = (IsoTpProtocolControlInformation)
@@ -73,11 +76,12 @@ void isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
                 size: payload_length
             };
 
-            isotp_handle_single_frame(handle, &message);
+            message_completed = isotp_handle_single_frame(handle, &message);
             break;
          }
         default:
             shims->log("Only single frame messages are supported");
             break;
     }
+    return message_completed;
 }

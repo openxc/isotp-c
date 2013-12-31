@@ -93,7 +93,13 @@ IsoTpShims isotp_init_shims(LogShim log,
         SendCanMessageShim send_can_message,
         SetTimerShim set_timer);
 
-void isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
+/* Public:
+ *
+ * Returns true if a complete ISO-TP message was sent or received as of
+ * processing this CAN frame. Check the 'success' and 'completed' flag on the
+ * handle to make sure.
+ */
+bool isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
         const uint16_t arbitration_id, const uint8_t data[],
         const uint8_t size);
 

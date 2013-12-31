@@ -5,7 +5,7 @@
 #include <stdarg.h>
 
 IsoTpShims SHIMS;
-IsoTpHandler ISOTP_HANDLER;
+IsoTpHandle HANDLE;
 
 uint16_t last_can_frame_sent_arb_id;
 uint8_t last_can_payload_sent[8];
@@ -83,8 +83,8 @@ void can_frame_sent(const uint16_t arbitration_id, const uint8_t* payload,
 
 void setup() {
     SHIMS = isotp_init_shims(debug, mock_send_can, mock_set_timer);
-    ISOTP_HANDLER = isotp_init(&SHIMS, 0x2a, message_received, message_sent,
-            can_frame_sent);
+    // TODO
+    /* HANDLE = isotp_receive(&SHIMS, 0x2a, message_received); */
     last_message_sent_payload = malloc(MAX_ISO_TP_MESSAGE_SIZE);
     last_message_received_payload = malloc(MAX_ISO_TP_MESSAGE_SIZE);
     memset(last_can_payload_sent, 0, sizeof(last_can_payload_sent));

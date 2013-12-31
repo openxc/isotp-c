@@ -39,21 +39,42 @@ typedef struct {
 } IsoTpShims;
 
 typedef struct {
-    IsoTpShims* shims;
     uint16_t arbitration_id;
     IsoTpMessageReceivedHandler message_received_callback;
-    IsoTpMessageSentHandler message_sent_callback;
-    IsoTpCanFrameSentHandler can_frame_sent_callback;
 
     // Private
     uint16_t timeout_ms;
+    // timeout_ms: ISO_TP_DEFAULT_RESPONSE_TIMEOUT,
     bool frame_padding;
+    // frame_padding: ISO_TP_DEFAULT_FRAME_PADDING_STATUS,
     uint8_t* receive_buffer;
     uint16_t received_buffer_size;
     uint16_t incoming_message_size;
-    bool sending;
     // TODO timer callback
-} IsoTpHandler;
+} IsoTpReceiveHandle;
+
+typedef struct {
+    uint16_t sending_arbitration_id;
+    uint16_t receiving_arbitration_id;
+    IsoTpMessageSentHandler message_sent_callback;
+    IsoTpCanFrameSentHandler can_frame_sent_callback;
+
+    // TODO going to need some state here for multi frame messages
+} IsoTpSendHandle;
+
+typedef enum {
+    ISOTP_HANDLE_SENDING,
+    ISOTP_HANDLE_RECEIVING
+} IsoTpHandleType;
+
+typedef struct {
+    bool success;
+    bool completed;
+    IsoTpHandleType type;
+    IsoTpReceiveHandle receive_handle;
+    IsoTpSendHandle send_handle;
+} IsoTpHandle;
+
 
 typedef enum {
     PCI_SINGLE = 0x0,
@@ -72,11 +93,9 @@ IsoTpShims isotp_init_shims(LogShim log,
         SendCanMessageShim send_can_message,
         SetTimerShim set_timer);
 
-IsoTpHandler isotp_init(IsoTpShims* shims,
-        uint16_t arbitration_id,
-        IsoTpMessageReceivedHandler message_received_callback,
-        IsoTpMessageSentHandler message_sent_callback,
-        IsoTpCanFrameSentHandler can_frame_sent_callback);
+void isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
+        const uint16_t arbitration_id, const uint8_t data[],
+        const uint8_t size);
 
 /* Public: Change the timeout for waiting on an ISO-TP response frame.
  *
@@ -85,12 +104,13 @@ IsoTpHandler isotp_init(IsoTpShims* shims,
  * handler - the ISO-TP handler to modify.
  * timeout - the new timeout in milliseconds.
  */
-void isotp_set_timeout(IsoTpHandler* handler, uint16_t timeout_ms);
+// void isotp_set_timeout(IsoTpHandler* handler, uint16_t timeout_ms);
 
-void isotp_destroy(IsoTpHandler* handler);
+// void isotp_destroy(IsoTpHandler* handler);
 
 void isotp_message_to_string(const IsoTpMessage* message, char* destination,
         size_t destination_length);
+
 
 #ifdef __cplusplus
 }

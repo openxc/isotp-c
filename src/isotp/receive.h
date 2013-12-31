@@ -9,13 +9,13 @@
 extern "C" {
 #endif
 
-void isotp_handle_single_frame(IsoTpHandler* handler, IsoTpMessage* message);
+void isotp_complete_receive(IsoTpHandle* handle, IsoTpMessage* message);
 
-void isotp_complete_receive(IsoTpHandler* handler, IsoTpMessage* message);
+void isotp_handle_single_frame(IsoTpHandle* handle,
+        IsoTpMessage* message);
 
-void isotp_receive_can_frame(IsoTpHandler* handler,
-        const uint16_t arbitration_id, const uint8_t data[],
-        const uint8_t size);
+IsoTpHandle isotp_receive(IsoTpShims* shims, const uint16_t arbitration_id,
+        IsoTpMessageReceivedHandler callback);
 
 #ifdef __cplusplus
 }

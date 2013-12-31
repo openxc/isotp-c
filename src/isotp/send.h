@@ -9,9 +9,9 @@
 extern "C" {
 #endif
 
-// TODO I don't love this API
-bool isotp_send(IsoTpHandler* handler, const uint8_t* payload,
-        uint16_t payload_size);
+IsoTpHandle isotp_send(IsoTpShims* shims, const uint16_t arbitration_id,
+        const uint8_t* payload, uint16_t size,
+        IsoTpMessageSentHandler callback);
 
 #ifdef __cplusplus
 }

@@ -6,7 +6,7 @@
 #include <stdarg.h>
 
 extern IsoTpShims SHIMS;
-extern IsoTpHandler ISOTP_HANDLER;
+extern IsoTpHandle HANDLE;
 
 extern uint16_t last_can_frame_sent_arb_id;
 extern uint8_t last_can_payload_sent;
@@ -28,7 +28,7 @@ extern void setup();
 START_TEST (test_receive_wrong_id)
 {
     const uint8_t data[CAN_MESSAGE_BYTE_SIZE] = {0};
-    isotp_receive_can_frame(&ISOTP_HANDLER, 0x100, data, 1);
+    isotp_receive_can_frame(&SHIMS, &HANDLE, 0x100, data, 1);
     fail_if(message_was_received);
 }
 END_TEST
@@ -37,7 +37,7 @@ START_TEST (test_receive_bad_pci)
 {
     // 4 is a reserved number for the PCI field - only 0-3 are allowed
     const uint8_t data[CAN_MESSAGE_BYTE_SIZE] = {0x40};
-    isotp_receive_can_frame(&ISOTP_HANDLER, 0x2a, data, 1);
+    isotp_receive_can_frame(&SHIMS, &HANDLE, 0x2a, data, 1);
     fail_if(message_was_received);
 }
 END_TEST
@@ -45,7 +45,7 @@ END_TEST
 START_TEST (test_receive_single_frame_empty_payload)
 {
     const uint8_t data[CAN_MESSAGE_BYTE_SIZE] = {0x00, 0x12, 0x34};
-    isotp_receive_can_frame(&ISOTP_HANDLER, 0x2a, data, 3);
+    isotp_receive_can_frame(&SHIMS, &HANDLE, 0x2a, data, 3);
     fail_unless(message_was_received);
     ck_assert_int_eq(last_message_received_arb_id, 0x2a);
     ck_assert_int_eq(last_message_received_payload_size, 0);
@@ -55,7 +55,7 @@ END_TEST
 START_TEST (test_receive_single_frame)
 {
     const uint8_t data[CAN_MESSAGE_BYTE_SIZE] = {0x02, 0x12, 0x34};
-    isotp_receive_can_frame(&ISOTP_HANDLER, 0x2a, data, 3);
+    isotp_receive_can_frame(&SHIMS, &HANDLE, 0x2a, data, 3);
     fail_unless(message_was_received);
     ck_assert_int_eq(last_message_received_arb_id, 0x2a);
     ck_assert_int_eq(last_message_received_payload_size, 2);

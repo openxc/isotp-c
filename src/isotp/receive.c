@@ -1,42 +1,27 @@
 #include <isotp/receive.h>
 
-void isotp_handle_single_frame(IsoTpHandler* handler, IsoTpMessage* message) {
-    isotp_complete_receive(handler, message);
+void isotp_handle_single_frame(IsoTpHandle* handle,
+        IsoTpMessage* message) {
+    isotp_complete_receive(handle, message);
 }
 
-void isotp_complete_receive(IsoTpHandler* handler, IsoTpMessage* message) {
-    handler->message_received_callback(message);
+void isotp_complete_receive(IsoTpHandle* handle, IsoTpMessage* message) {
+    handle->receive_handle.message_received_callback(message);
 }
 
-void isotp_receive_can_frame(IsoTpHandler* handler,
-        const uint16_t arbitration_id, const uint8_t data[],
-        const uint8_t data_length) {
-    if(arbitration_id != handler->arbitration_id || data_length < 1) {
-        return;
-    }
-
-    IsoTpProtocolControlInformation pci = (IsoTpProtocolControlInformation)
-            get_nibble(data, data_length, 0);
-
-    uint8_t payload_length = get_nibble(data, data_length, 1);
-    uint8_t payload[payload_length];
-    if(payload_length > 0 && data_length > 0) {
-        memcpy(payload, &data[1], payload_length);
-    }
-
-    IsoTpMessage message = {
+IsoTpHandle isotp_receive(IsoTpShims* shims,
+        const uint16_t arbitration_id, IsoTpMessageReceivedHandler callback) {
+    IsoTpReceiveHandle receive_handle = {
         arbitration_id: arbitration_id,
-        payload: payload,
-        size: payload_length
+        message_received_callback: callback
     };
 
-    switch(pci) {
-        case PCI_SINGLE:
-            isotp_handle_single_frame(handler, &message);
-            break;
-        default:
-            handler->shims->log("Only single frame messages are supported");
-            break;
-    }
+    IsoTpHandle handle = {
+        success: false,
+        completed: true,
+        receive_handle: receive_handle,
+        type: ISOTP_HANDLE_RECEIVING
+    };
+    return handle;
 }
 

@@ -9,6 +9,7 @@
 extern "C" {
 #endif
 
+// TODO I don't love this API
 bool isotp_send(IsoTpHandler* handler, const uint8_t* payload,
         uint16_t payload_size);
 

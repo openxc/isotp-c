@@ -7,11 +7,6 @@ const uint16_t MAX_CAN_FRAME_SIZE = 8;
 const uint8_t ISO_TP_DEFAULT_RESPONSE_TIMEOUT = 100;
 const bool ISO_TP_DEFAULT_FRAME_PADDING_STATUS = true;
 
-// TODO why isn't this picked up from the header?
-extern IsoTpHandle isotp_receive(IsoTpShims* shims, const uint16_t arbitration_id,
-        IsoTpMessageReceivedHandler callback);
-
-
 /* void isotp_set_timeout(IsoTpHandler* handler, uint16_t timeout_ms) { */
     /* handler->timeout_ms = timeout_ms; */
 /* } */
@@ -28,9 +23,14 @@ IsoTpShims isotp_init_shims(LogShim log, SendCanMessageShim send_can_message,
 
 void isotp_message_to_string(const IsoTpMessage* message, char* destination,
         size_t destination_length) {
-    snprintf(destination, destination_length,"ID: 0x%02x, Payload: 0x%llx",
-            // TODO the payload may be backwards here
-            message->arbitration_id, message->payload);
+    char payload_string[message->size * 2 + 1];
+    for(int i = 0; i < message->size; i++) {
+        // TODO, bah this isn't working because snprintf hits the NULL char that
+        // it wrote the last time and stops cold
+        snprintf(&payload_string[i * 2], 2, "%02x", message->payload[i]);
+    }
+    snprintf(destination, destination_length, "ID: 0x%02x, Payload: 0x%s",
+            message->arbitration_id, payload_string);
 }
 
 bool isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,

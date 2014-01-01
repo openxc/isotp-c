@@ -33,26 +33,29 @@ void isotp_message_to_string(const IsoTpMessage* message, char* destination,
             message->arbitration_id, payload_string);
 }
 
-bool isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
+IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
         const uint16_t arbitration_id, const uint8_t data[],
         const uint8_t data_length) {
-    bool message_completed = false;
+    IsoTpMessage message = {
+        arbitration_id: arbitration_id,
+        completed: false
+    };
 
     if(data_length < 1) {
-        return message_completed;
+        return message;
     }
 
     if(handle->type == ISOTP_HANDLE_RECEIVING) {
         if(handle->receive_handle.arbitration_id != arbitration_id) {
-            return message_completed;
+            return message;
         }
     } else if(handle->type == ISOTP_HANDLE_SENDING) {
         if(handle->send_handle.receiving_arbitration_id != arbitration_id) {
-            return message_completed;
+            return message;
         }
     } else {
         shims->log("The ISO-TP handle is corrupt");
-        return message_completed;
+        return message;
     }
 
     IsoTpProtocolControlInformation pci = (IsoTpProtocolControlInformation)
@@ -70,18 +73,15 @@ bool isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
 
     switch(pci) {
         case PCI_SINGLE: {
-            IsoTpMessage message = {
-                arbitration_id: arbitration_id,
-                payload: payload,
-                size: payload_length
-            };
-
-            message_completed = isotp_handle_single_frame(handle, &message);
+            message.payload = payload;
+            message.size = payload_length;
+            message.completed = true;
+            isotp_handle_single_frame(handle, &message);
             break;
          }
         default:
             shims->log("Only single frame messages are supported");
             break;
     }
-    return message_completed;
+    return message;
 }

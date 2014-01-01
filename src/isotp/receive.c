@@ -24,4 +24,3 @@ IsoTpHandle isotp_receive(IsoTpShims* shims,
     };
     return handle;
 }
-

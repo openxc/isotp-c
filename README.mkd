@@ -58,7 +58,8 @@ Then, set up a callback and send an ISO-TP message:
 Finally, receive an ISO-TP message:
 
     // This is your callback for when a complete ISO-TP message is received at
-    // the arbitration ID you specify
+    // the arbitration ID you specify - it's optional. The completed message is
+    // also returned by isotp_receive_can_frame
     void message_received(const IsoTpMessage* message) {
     }
 
@@ -69,9 +70,9 @@ Finally, receive an ISO-TP message:
     } else {
         while(true) {
             // Continue to read from CAN, passing off each message to the handle
-            bool complete = isotp_receive_can_frame(&shims, &handle, 0x100, data, size);
+            IsoTp message = isotp_receive_can_frame(&shims, &handle, 0x100, data, size);
 
-            if(complete && handle.completed) {
+            if(message.completed && handle.completed) {
                 if(handle.success) {
                     // A message has been received successfully
                 } else {

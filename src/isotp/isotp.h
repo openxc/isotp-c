@@ -18,8 +18,9 @@ const bool ISO_TP_DEFAULT_FRAME_PADDING_STATUS;
 
 typedef struct {
     const uint16_t arbitration_id;
-    const uint8_t* payload;
-    const uint16_t size;
+    uint8_t* payload;
+    uint16_t size;
+    bool completed;
 } IsoTpMessage;
 
 typedef void (*LogShim)(const char* message, ...);
@@ -95,11 +96,8 @@ IsoTpShims isotp_init_shims(LogShim log,
 
 /* Public:
  *
- * Returns true if a complete ISO-TP message was sent or received as of
- * processing this CAN frame. Check the 'success' and 'completed' flag on the
- * handle to make sure.
  */
-bool isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
+IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
         const uint16_t arbitration_id, const uint8_t data[],
         const uint8_t size);
 
@@ -121,8 +119,8 @@ IsoTpHandle isotp_send(IsoTpShims* shims, const uint16_t arbitration_id,
         const uint8_t* payload, uint16_t size,
         IsoTpMessageSentHandler callback);
 
-IsoTpHandle isotp_receive(IsoTpShims* shims, const uint16_t arbitration_id,
-        IsoTpMessageReceivedHandler callback);
+IsoTpHandle isotp_receive(IsoTpShims* shims,
+        const uint16_t arbitration_id, IsoTpMessageReceivedHandler callback);
 
 #ifdef __cplusplus
 }

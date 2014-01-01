@@ -49,6 +49,8 @@ IsoTpHandle isotp_send_multi_frame(IsoTpShims* shims, IsoTpMessage* message,
         completed: true,
         type: ISOTP_HANDLE_SENDING
     };
+    // TODO need to set sending and receiving arbitration IDs separately if we
+    // can't always just add 0x8 (and I think we can't)
     return handle;
 }
 

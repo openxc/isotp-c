@@ -28,7 +28,8 @@ extern void setup();
 START_TEST (test_receive_wrong_id)
 {
     const uint8_t data[CAN_MESSAGE_BYTE_SIZE] = {0};
-    fail_if(isotp_receive_can_frame(&SHIMS, &HANDLE, 0x100, data, 1));
+    IsoTpMessage message = isotp_receive_can_frame(&SHIMS, &HANDLE, 0x100, data, 1);
+    fail_if(message.completed);
     fail_if(message_was_received);
 }
 END_TEST
@@ -37,7 +38,8 @@ START_TEST (test_receive_bad_pci)
 {
     // 4 is a reserved number for the PCI field - only 0-3 are allowed
     const uint8_t data[CAN_MESSAGE_BYTE_SIZE] = {0x40};
-    fail_if(isotp_receive_can_frame(&SHIMS, &HANDLE, 0x2a, data, 1));
+    IsoTpMessage message = isotp_receive_can_frame(&SHIMS, &HANDLE, 0x2a, data, 1);
+    fail_if(message.completed);
     fail_if(message_was_received);
 }
 END_TEST
@@ -45,7 +47,8 @@ END_TEST
 START_TEST (test_receive_single_frame_empty_payload)
 {
     const uint8_t data[CAN_MESSAGE_BYTE_SIZE] = {0x00, 0x12, 0x34};
-    fail_unless(isotp_receive_can_frame(&SHIMS, &HANDLE, 0x2a, data, 3));
+    IsoTpMessage message = isotp_receive_can_frame(&SHIMS, &HANDLE, 0x2a, data, 3);
+    fail_unless(message.completed);
     fail_unless(message_was_received);
     ck_assert_int_eq(last_message_received_arb_id, 0x2a);
     ck_assert_int_eq(last_message_received_payload_size, 0);
@@ -55,7 +58,8 @@ END_TEST
 START_TEST (test_receive_single_frame)
 {
     const uint8_t data[CAN_MESSAGE_BYTE_SIZE] = {0x02, 0x12, 0x34};
-    fail_unless(isotp_receive_can_frame(&SHIMS, &HANDLE, 0x2a, data, 3));
+    IsoTpMessage message = isotp_receive_can_frame(&SHIMS, &HANDLE, 0x2a, data, 3);
+    fail_unless(message.completed);
     fail_unless(message_was_received);
     ck_assert_int_eq(last_message_received_arb_id, 0x2a);
     ck_assert_int_eq(last_message_received_payload_size, 2);

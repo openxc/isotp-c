@@ -101,6 +101,11 @@ IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
         const uint16_t arbitration_id, const uint8_t data[],
         const uint8_t size);
 
+// TODO perhaps this makes more sense as 2 functions:
+// bool isotp_continue_send()
+// IsoTpMessage isotp_continue_receive()
+// but both with the same args
+
 /* Public: Change the timeout for waiting on an ISO-TP response frame.
  *
  * If this function is not used, the conventional 100ms is used by default.

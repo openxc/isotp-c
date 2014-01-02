@@ -20,7 +20,7 @@ IsoTpHandle isotp_receive(IsoTpShims* shims,
 
     IsoTpHandle handle = {
         success: false,
-        completed: true,
+        completed: false,
         receive_handle: receive_handle,
         type: ISOTP_HANDLE_RECEIVING
     };

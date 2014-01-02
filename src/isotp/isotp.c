@@ -76,6 +76,8 @@ IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
             message.payload = payload;
             message.size = payload_length;
             message.completed = true;
+            handle->success = true;
+            handle->completed = true;
             isotp_handle_single_frame(handle, &message);
             break;
          }

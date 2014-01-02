@@ -6,7 +6,9 @@ bool isotp_handle_single_frame(IsoTpHandle* handle, IsoTpMessage* message) {
 }
 
 void isotp_complete_receive(IsoTpHandle* handle, IsoTpMessage* message) {
-    handle->receive_handle.message_received_callback(message);
+    if(handle->receive_handle.message_received_callback != NULL) {
+        handle->receive_handle.message_received_callback(message);
+    }
 }
 
 IsoTpHandle isotp_receive(IsoTpShims* shims,

@@ -6,7 +6,9 @@
 
 void isotp_complete_send(IsoTpShims* shims, IsoTpMessage* message,
         bool status, IsoTpMessageSentHandler callback) {
-    callback(message, status);
+    if(callback != NULL) {
+        callback(message, status);
+    }
 }
 
 IsoTpHandle isotp_send_single_frame(IsoTpShims* shims, IsoTpMessage* message,

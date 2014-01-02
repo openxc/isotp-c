@@ -21,15 +21,17 @@ IsoTpShims isotp_init_shims(LogShim log, SendCanMessageShim send_can_message,
 
 void isotp_message_to_string(const IsoTpMessage* message, char* destination,
         size_t destination_length) {
-    char payload_string[message->size * 2 + 1];
-    memset(payload_string, 0, sizeof(payload_string));
-    for(int i = 0; i < message->size; i++) {
-        // TODO, bah this isn't working because snprintf hits the NULL char that
-        // it wrote the last time and stops cold
-        /* snprintf(&payload_string[i * 2], 2, "%02x", message->payload[i]); */
-    }
-    snprintf(destination, destination_length, "ID: 0x%02x, Payload: 0x%s",
-            message->arbitration_id, payload_string);
+    // TODO why is this still not printing the entire payload?
+    snprintf(destination, destination_length, "ID: 0x%02x, Payload: 0x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+            message->arbitration_id,
+            message->payload[0],
+            message->payload[1],
+            message->payload[2],
+            message->payload[3],
+            message->payload[4],
+            message->payload[5],
+            message->payload[6],
+            message->payload[7]);
 }
 
 IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,

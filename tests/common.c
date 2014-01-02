@@ -76,9 +76,7 @@ void message_sent(const IsoTpMessage* message, const bool success) {
 
 void can_frame_sent(const uint16_t arbitration_id, const uint8_t* payload,
         const uint8_t size) {
-    debug("Sent CAN Frame:");
-    // TODO add something like this to canutil
-    /* log_can_message(arbitration_id, payload, size); */
+    debug("Sent CAN Frame with arb ID 0x%x and %d bytes", arbitration_id, size);
 }
 
 void setup() {

@@ -6,19 +6,22 @@
 #include <stdio.h>
 
 #define CAN_MESSAGE_BYTE_SIZE 8
+#define MAX_ISO_TP_MESSAGE_SIZE 4096
+// TODO we want to avoid malloc, and we can't be allocated 4K on the stack for
+// each IsoTpMessage, so for now we're setting an artificial max message size
+// here - since we only handle single frame messages, 8 bytes is plenty.
+#define OUR_MAX_ISO_TP_MESSAGE_SIZE 8
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-const uint16_t MAX_ISO_TP_MESSAGE_SIZE;
-const uint16_t MAX_CAN_FRAME_SIZE;
 const uint8_t ISO_TP_DEFAULT_RESPONSE_TIMEOUT;
 const bool ISO_TP_DEFAULT_FRAME_PADDING_STATUS;
 
 typedef struct {
     const uint16_t arbitration_id;
-    uint8_t* payload;
+    uint8_t payload[OUR_MAX_ISO_TP_MESSAGE_SIZE];
     uint16_t size;
     bool completed;
 } IsoTpMessage;
@@ -121,7 +124,7 @@ void isotp_message_to_string(const IsoTpMessage* message, char* destination,
         size_t destination_length);
 
 IsoTpHandle isotp_send(IsoTpShims* shims, const uint16_t arbitration_id,
-        const uint8_t* payload, uint16_t size,
+        const uint8_t payload[], uint16_t size,
         IsoTpMessageSentHandler callback);
 
 IsoTpHandle isotp_receive(IsoTpShims* shims,

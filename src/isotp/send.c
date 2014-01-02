@@ -44,7 +44,7 @@ IsoTpHandle isotp_send_single_frame(IsoTpShims* shims, IsoTpMessage* message,
 
 IsoTpHandle isotp_send_multi_frame(IsoTpShims* shims, IsoTpMessage* message,
         IsoTpMessageSentHandler callback) {
-    // TODO make sure to copy payload into a local buffer
+    // TODO make sure to copy message into a local buffer
     shims->log("Only single frame messages are supported");
     IsoTpHandle handle = {
         success: false,
@@ -57,14 +57,14 @@ IsoTpHandle isotp_send_multi_frame(IsoTpShims* shims, IsoTpMessage* message,
 }
 
 IsoTpHandle isotp_send(IsoTpShims* shims, const uint16_t arbitration_id,
-        const uint8_t* payload, uint16_t size,
+        const uint8_t payload[], uint16_t size,
         IsoTpMessageSentHandler callback) {
     IsoTpMessage message = {
         arbitration_id: arbitration_id,
-        payload: payload,
         size: size
     };
 
+    memcpy(message.payload, payload, size);
     if(size < 8) {
         return isotp_send_single_frame(shims, &message, callback);
     } else {

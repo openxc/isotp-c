@@ -15,12 +15,12 @@ extern bool can_frame_was_sent;
 
 extern bool message_was_received;
 extern uint16_t last_message_received_arb_id;
-extern uint8_t* last_message_received_payload;
+extern uint8_t last_message_received_payload[];
 extern uint8_t last_message_received_payload_size;
 
 extern uint16_t last_message_sent_arb_id;
 extern bool last_message_sent_status;
-extern uint8_t* last_message_sent_payload;
+extern uint8_t last_message_sent_payload[];
 extern uint8_t last_message_sent_payload_size;
 
 extern void setup();

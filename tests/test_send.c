@@ -17,12 +17,12 @@ extern bool can_frame_was_sent;
 
 extern bool message_was_received;
 extern uint16_t last_message_received_arb_id;
-extern uint8_t* last_message_received_payload;
+extern uint8_t last_message_received_payload[];
 extern uint8_t last_message_received_payload_size;
 
 extern uint16_t last_message_sent_arb_id;
 extern bool last_message_sent_status;
-extern uint8_t* last_message_sent_payload;
+extern uint8_t last_message_sent_payload[];
 extern uint8_t last_message_sent_payload_size;
 
 extern void setup();
@@ -49,8 +49,8 @@ START_TEST (test_send_single_frame)
 {
     const uint8_t payload[] = {0x12, 0x34};
     uint16_t arbitration_id = 0x2a;
-    IsoTpHandle handle = isotp_send(&SHIMS, arbitration_id, payload, sizeof(payload),
-            message_sent);
+    IsoTpHandle handle = isotp_send(&SHIMS, arbitration_id, payload,
+            sizeof(payload), message_sent);
     ck_assert_int_eq(last_message_sent_arb_id, arbitration_id);
     fail_unless(last_message_sent_status);
     ck_assert_int_eq(last_message_sent_payload[0], 0x12);

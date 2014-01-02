@@ -2,8 +2,6 @@
 #include <isotp/receive.h>
 #include <bitfield/bitfield.h>
 
-const uint16_t MAX_ISO_TP_MESSAGE_SIZE = 4096;
-const uint16_t MAX_CAN_FRAME_SIZE = 8;
 const uint8_t ISO_TP_DEFAULT_RESPONSE_TIMEOUT = 100;
 const bool ISO_TP_DEFAULT_FRAME_PADDING_STATUS = true;
 
@@ -24,10 +22,11 @@ IsoTpShims isotp_init_shims(LogShim log, SendCanMessageShim send_can_message,
 void isotp_message_to_string(const IsoTpMessage* message, char* destination,
         size_t destination_length) {
     char payload_string[message->size * 2 + 1];
+    memset(payload_string, 0, sizeof(payload_string));
     for(int i = 0; i < message->size; i++) {
         // TODO, bah this isn't working because snprintf hits the NULL char that
         // it wrote the last time and stops cold
-        snprintf(&payload_string[i * 2], 2, "%02x", message->payload[i]);
+        /* snprintf(&payload_string[i * 2], 2, "%02x", message->payload[i]); */
     }
     snprintf(destination, destination_length, "ID: 0x%02x, Payload: 0x%s",
             message->arbitration_id, payload_string);
@@ -38,7 +37,9 @@ IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
         const uint8_t data_length) {
     IsoTpMessage message = {
         arbitration_id: arbitration_id,
-        completed: false
+        completed: false,
+        payload: {0},
+        size: 0
     };
 
     if(data_length < 1) {
@@ -47,10 +48,18 @@ IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
 
     if(handle->type == ISOTP_HANDLE_RECEIVING) {
         if(handle->receive_handle.arbitration_id != arbitration_id) {
+            if(shims->log != NULL)  {
+                shims->log("The arb ID 0x%x doesn't match the expected rx ID 0x%x",
+                        arbitration_id, handle->receive_handle.arbitration_id);
+            }
             return message;
         }
     } else if(handle->type == ISOTP_HANDLE_SENDING) {
         if(handle->send_handle.receiving_arbitration_id != arbitration_id) {
+            if(shims->log != NULL) {
+                shims->log("The arb ID 0x%x doesn't match the expected tx continuation ID 0x%x",
+                        arbitration_id, handle->send_handle.receiving_arbitration_id);
+            }
             return message;
         }
     } else {
@@ -73,7 +82,9 @@ IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
 
     switch(pci) {
         case PCI_SINGLE: {
-            message.payload = payload;
+            if(payload_length > 0) {
+                memcpy(message.payload, payload, payload_length);
+            }
             message.size = payload_length;
             message.completed = true;
             handle->success = true;

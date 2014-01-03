@@ -43,9 +43,9 @@ system:
         ...
     }
 
-With your shims in place, create an IsoTpShim object to pass them around:
+With your shims in place, create an IsoTpShims object to pass them around:
 
-    IsoTpShim shims = isotp_init_shims(debug, send_can, set_timer);
+    IsoTpShims shims = isotp_init_shims(debug, send_can, set_timer);
 
 ### API
 

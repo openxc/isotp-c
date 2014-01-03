@@ -1,32 +1,63 @@
 ISO-TP (ISO 15765-2) Support Library in C
 ================================
 
-## API
+This is a platform agnostic C library that implements the ISO 15765-2 (also
+known as ISO-TP) protocol, which runs over a CAN bus. Quoting Wikipedia:
 
-First, set up some shim functions to your lower level system:
+>ISO 15765-2, or ISO-TP, is an international standard for sending data packets
+>over a CAN-Bus. The protocol allows for the transport of messages that exceed
+>the eight byte maximum payload of CAN frames. ISO-TP segments longer messages
+>into multiple frames, adding metadata that allows the interpretation of
+>individual frames and reassembly into a complete message packet by the
+>recipient. It can carry up to 4095 bytes of payload per message packet.
 
-    void debug(const char* format, ...) {
-        ...
-    }
+This library doesn't assume anything about the source of the ISO-TP messages or
+the underlying interface to CAN. It uses dependency injection to give you
+complete control.
 
+The current version supports *only single frame ISO-TP messages*. This is fine
+for OBD-II diagnostic messages, for example, but this library needs some
+additional work before it can support sending larger messages.
+
+## Usage
+
+First, create some shim functions to let this library use your lower level
+system:
+
+    // required, this must send a single CAN message with the given arbitration
+    // ID (i.e. the CAN message ID) and data. The size will never be more than 8
+    // bytes.
     void send_can(const uint16_t arbitration_id, const uint8_t* data,
             const uint8_t size) {
         ...
     }
 
+    // optional, provide to receive debugging log messages
+    void debug(const char* format, ...) {
+        ...
+    }
+
+
+    // not used in the current version
     void set_timer(uint16_t time_ms, void (*callback)) {
         ...
     }
 
-Then, set up a callback and send an ISO-TP message:
+With your shims in place, create an IsoTpShim object to pass them around:
 
-    // this is your callback for when the message is completely sent - it's
-    // optional
+    IsoTpShim shims = isotp_init_shims(debug, send_can, set_timer);
+
+### API
+
+With your shims in hand, send an ISO-TP message:
+
+    // Optiona: This is your callback that will be called when the message is
+    // completely sent. If it was single frame (the only type supported right
+    // now), this will be called immediately.
     void message_sent(const IsoTpMessage* message, const bool success) {
         // You received the message! Do something with it.
     }
 
-    IsoTpShim shims = isotp_init_shims(debug, send_can, set_timer);
     IsoTpHandle handle = isotp_send(&shims, 0x100, NULL, 0, message_sent);
 
     if(handle.completed) {
@@ -57,9 +88,10 @@ Then, set up a callback and send an ISO-TP message:
 
 Finally, receive an ISO-TP message:
 
-    // This is your callback for when a complete ISO-TP message is received at
-    // the arbitration ID you specify - it's optional. The completed message is
-    // also returned by isotp_receive_can_frame
+    // Optional: This is your callback for when a complete ISO-TP message is
+    // received at the arbitration ID you specify. The completed message is
+    // also returned by isotp_receive_can_frame, which can sometimes be more
+    // useful since you have more context.
     void message_received(const IsoTpMessage* message) {
     }
 
@@ -83,8 +115,6 @@ Finally, receive an ISO-TP message:
             }
         }
     }
-
-// TODO add an optional dispatcher to handle multiple open requests
 
 ## Testing
 

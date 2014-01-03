@@ -46,7 +46,7 @@ void mock_set_timer(uint16_t time_ms, void (*callback)) {
 void message_received(const IsoTpMessage* message) {
     debug("Received ISO-TP message:");
     message_was_received = true;
-    char str_message[24];
+    char str_message[48] = {0};
     isotp_message_to_string(message, str_message, sizeof(str_message));
     debug("%s", str_message);
     last_message_received_arb_id = message->arbitration_id;
@@ -62,7 +62,7 @@ void message_sent(const IsoTpMessage* message, const bool success) {
     } else {
         debug("Unable to send ISO-TP message:");
     }
-    char str_message[24] = {0};
+    char str_message[48] = {0};
     isotp_message_to_string(message, str_message, sizeof(str_message));
     debug("%s", str_message);
 

@@ -69,3 +69,19 @@ IsoTpSendHandle isotp_send(IsoTpShims* shims, const uint16_t arbitration_id,
         return isotp_send_multi_frame(shims, &message, callback);
     }
 }
+
+bool isotp_continue_send(IsoTpShims* shims, IsoTpSendHandle* handle,
+        const uint16_t arbitration_id, const uint8_t data[],
+        const uint8_t size) {
+    // TODO this will need to be tested when we add multi-frame support,
+    // which is when it'll be necessary to pass in CAN messages to SENDING
+    // handles.
+    if(handle->receiving_arbitration_id != arbitration_id) {
+        if(shims->log != NULL) {
+            shims->log("The arb ID 0x%x doesn't match the expected tx continuation ID 0x%x",
+                    arbitration_id, handle->receiving_arbitration_id);
+        }
+        return false;
+    }
+    return false;
+}

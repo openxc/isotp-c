@@ -92,6 +92,11 @@ The library includes a test suite that uses the `check` C unit test library.
 
     $ make test
 
+You can also see the test coverage if you have `lcov` installed and the
+`BROWSER` environment variable set to your choice of web browsers:
+
+    $ BROWSER=google-chrome-stable make coverage
+
 ## Authors
 
 Chris Peplin cpeplin@ford.com

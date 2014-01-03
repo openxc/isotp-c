@@ -132,7 +132,8 @@ You can also see the test coverage if you have `lcov` installed and the
 
 ## Authors
 
-Chris Peplin cpeplin@ford.com
+* Chris Peplin cpeplin@ford.com
+* David Boll dboll2@ford.com (the inspiration for the library's API is from David)
 
 ## License
 

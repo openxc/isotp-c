@@ -43,6 +43,8 @@ typedef struct {
 } IsoTpShims;
 
 typedef struct {
+    bool success;
+    bool completed;
     uint16_t arbitration_id;
     IsoTpMessageReceivedHandler message_received_callback;
 
@@ -54,15 +56,16 @@ typedef struct {
     uint8_t* receive_buffer;
     uint16_t received_buffer_size;
     uint16_t incoming_message_size;
-    // TODO timer callback
+    // TODO timer callback for multi frame
 } IsoTpReceiveHandle;
 
 typedef struct {
+    bool success;
+    bool completed;
     uint16_t sending_arbitration_id;
     uint16_t receiving_arbitration_id;
     IsoTpMessageSentHandler message_sent_callback;
     IsoTpCanFrameSentHandler can_frame_sent_callback;
-
     // TODO going to need some state here for multi frame messages
 } IsoTpSendHandle;
 
@@ -70,15 +73,6 @@ typedef enum {
     ISOTP_HANDLE_SENDING,
     ISOTP_HANDLE_RECEIVING
 } IsoTpHandleType;
-
-typedef struct {
-    bool success;
-    bool completed;
-    IsoTpHandleType type;
-    IsoTpReceiveHandle receive_handle;
-    IsoTpSendHandle send_handle;
-} IsoTpHandle;
-
 
 typedef enum {
     PCI_SINGLE = 0x0,
@@ -97,17 +91,13 @@ IsoTpShims isotp_init_shims(LogShim log,
         SendCanMessageShim send_can_message,
         SetTimerShim set_timer);
 
-/* Public:
- *
- */
-IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
+IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
+        IsoTpReceiveHandle* handle, const uint16_t arbitration_id,
+        const uint8_t data[], const uint8_t size);
+
+bool isotp_continue_send(IsoTpShims* shims, IsoTpSendHandle* handle,
         const uint16_t arbitration_id, const uint8_t data[],
         const uint8_t size);
-
-// TODO perhaps this makes more sense as 2 functions:
-// bool isotp_continue_send()
-// IsoTpMessage isotp_continue_receive()
-// but both with the same args
 
 /* Public: Change the timeout for waiting on an ISO-TP response frame.
  *
@@ -118,16 +108,14 @@ IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
  */
 // void isotp_set_timeout(IsoTpHandler* handler, uint16_t timeout_ms);
 
-// void isotp_destroy(IsoTpHandler* handler);
-
 void isotp_message_to_string(const IsoTpMessage* message, char* destination,
         size_t destination_length);
 
-IsoTpHandle isotp_send(IsoTpShims* shims, const uint16_t arbitration_id,
+IsoTpSendHandle isotp_send(IsoTpShims* shims, const uint16_t arbitration_id,
         const uint8_t payload[], uint16_t size,
         IsoTpMessageSentHandler callback);
 
-IsoTpHandle isotp_receive(IsoTpShims* shims,
+IsoTpReceiveHandle isotp_receive(IsoTpShims* shims,
         const uint16_t arbitration_id, IsoTpMessageReceivedHandler callback);
 
 #ifdef __cplusplus

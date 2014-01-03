@@ -33,9 +33,9 @@ void isotp_message_to_string(const IsoTpMessage* message, char* destination,
             message->payload[7]);
 }
 
-IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
-        const uint16_t arbitration_id, const uint8_t data[],
-        const uint8_t data_length) {
+IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
+        IsoTpReceiveHandle* handle, const uint16_t arbitration_id,
+        const uint8_t data[], const uint8_t size) {
     IsoTpMessage message = {
         arbitration_id: arbitration_id,
         completed: false,
@@ -43,40 +43,24 @@ IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
         size: 0
     };
 
-    if(data_length < 1) {
+    if(size < 1) {
         return message;
     }
 
-    if(handle->type == ISOTP_HANDLE_RECEIVING) {
-        if(handle->receive_handle.arbitration_id != arbitration_id) {
-            if(shims->log != NULL)  {
-                shims->log("The arb ID 0x%x doesn't match the expected rx ID 0x%x",
-                        arbitration_id, handle->receive_handle.arbitration_id);
-            }
-            return message;
+    if(handle->arbitration_id != arbitration_id) {
+        if(shims->log != NULL)  {
+            shims->log("The arb ID 0x%x doesn't match the expected rx ID 0x%x",
+                    arbitration_id, handle->arbitration_id);
         }
-    } else if(handle->type == ISOTP_HANDLE_SENDING) {
-        // TODO this will need to be tested when we add multi-frame support,
-        // which is when it'll be necessary to pass in CAN messages to SENDING
-        // handles.
-        if(handle->send_handle.receiving_arbitration_id != arbitration_id) {
-            if(shims->log != NULL) {
-                shims->log("The arb ID 0x%x doesn't match the expected tx continuation ID 0x%x",
-                        arbitration_id, handle->send_handle.receiving_arbitration_id);
-            }
-            return message;
-        }
-    } else {
-        shims->log("The ISO-TP handle is corrupt");
         return message;
     }
 
     IsoTpProtocolControlInformation pci = (IsoTpProtocolControlInformation)
-            get_nibble(data, data_length, 0);
+            get_nibble(data, size, 0);
 
-    uint8_t payload_length = get_nibble(data, data_length, 1);
+    uint8_t payload_length = get_nibble(data, size, 1);
     uint8_t payload[payload_length];
-    if(payload_length > 0 && data_length > 0) {
+    if(payload_length > 0 && size > 0) {
         memcpy(payload, &data[1], payload_length);
     }
 
@@ -102,3 +86,20 @@ IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
     }
     return message;
 }
+
+bool isotp_continue_send(IsoTpShims* shims, IsoTpSendHandle* handle,
+        const uint16_t arbitration_id, const uint8_t data[],
+        const uint8_t size) {
+    // TODO this will need to be tested when we add multi-frame support,
+    // which is when it'll be necessary to pass in CAN messages to SENDING
+    // handles.
+    if(handle->receiving_arbitration_id != arbitration_id) {
+        if(shims->log != NULL) {
+            shims->log("The arb ID 0x%x doesn't match the expected tx continuation ID 0x%x",
+                    arbitration_id, handle->receiving_arbitration_id);
+        }
+        return false;
+    }
+    return false;
+}
+

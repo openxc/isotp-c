@@ -9,9 +9,9 @@
 extern "C" {
 #endif
 
-void isotp_complete_receive(IsoTpHandle* handle, IsoTpMessage* message);
+void isotp_complete_receive(IsoTpReceiveHandle* handle, IsoTpMessage* message);
 
-bool isotp_handle_single_frame(IsoTpHandle* handle, IsoTpMessage* message);
+bool isotp_handle_single_frame(IsoTpReceiveHandle* handle, IsoTpMessage* message);
 
 #ifdef __cplusplus
 }

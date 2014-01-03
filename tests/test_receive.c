@@ -25,6 +25,16 @@ extern uint8_t last_message_sent_payload_size;
 
 extern void setup();
 
+START_TEST (test_receive_empty_can_message)
+{
+    const uint8_t data[CAN_MESSAGE_BYTE_SIZE] = {0};
+    fail_if(HANDLE.completed);
+    IsoTpMessage message = isotp_receive_can_frame(&SHIMS, &HANDLE, 0x100, data, 0);
+    fail_if(message.completed);
+    fail_if(message_was_received);
+}
+END_TEST
+
 START_TEST (test_receive_wrong_id)
 {
     const uint8_t data[CAN_MESSAGE_BYTE_SIZE] = {0};
@@ -79,6 +89,7 @@ Suite* testSuite(void) {
     tcase_add_test(tc_core, test_receive_bad_pci);
     tcase_add_test(tc_core, test_receive_single_frame);
     tcase_add_test(tc_core, test_receive_single_frame_empty_payload);
+    tcase_add_test(tc_core, test_receive_empty_can_message);
     suite_add_tcase(s, tc_core);
 
     return s;

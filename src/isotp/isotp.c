@@ -56,6 +56,9 @@ IsoTpMessage isotp_receive_can_frame(IsoTpShims* shims, IsoTpHandle* handle,
             return message;
         }
     } else if(handle->type == ISOTP_HANDLE_SENDING) {
+        // TODO this will need to be tested when we add multi-frame support,
+        // which is when it'll be necessary to pass in CAN messages to SENDING
+        // handles.
         if(handle->send_handle.receiving_arbitration_id != arbitration_id) {
             if(shims->log != NULL) {
                 shims->log("The arb ID 0x%x doesn't match the expected tx continuation ID 0x%x",

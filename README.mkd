@@ -51,7 +51,7 @@ With your shims in place, create an IsoTpShims object to pass them around:
 
 With your shims in hand, send an ISO-TP message:
 
-    // Optiona: This is your callback that will be called when the message is
+    // Optional: This is your callback that will be called when the message is
     // completely sent. If it was single frame (the only type supported right
     // now), this will be called immediately.
     void message_sent(const IsoTpMessage* message, const bool success) {
@@ -66,8 +66,8 @@ With your shims in hand, send an ISO-TP message:
             // send CAN messages
             return;
         } else {
-            // If the message fit in a single frame, it's already been sent and
-            you're done
+            // If the message fit in a single frame, it's already been sent
+            // and you're done
         }
     } else {
         while(true) {

@@ -12,18 +12,37 @@
 // here - since we only handle single frame messages, 8 bytes is plenty.
 #define OUR_MAX_ISO_TP_MESSAGE_SIZE 8
 
+/* Private: The default timeout to use when waiting for a response during a
+ * multi-frame send or receive.
+ */
+#define ISO_TP_DEFAULT_RESPONSE_TIMEOUT 100
+
+/* Private: Determines if by default, padding is added to ISO-TP message frames.
+ */
+#define ISO_TP_DEFAULT_FRAME_PADDING_STATUS true
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Private: The default timeout to use when waiting for a response during a
- * multi-frame send or receive.
+/* Public: A container for a sent or received ISO-TP message.
+ *
+ * completed - An IsoTpMessage is the return value from a few functions - this
+ *      attribute will be true if the message is actually completely received.
+ *      If the function returns but is only partially through receiving the
+ *      message, this will be false and you should not consider the other data
+ *      to be valid.
+ * arbitration_id - The arbitration ID of the message.
+ * payload - The optional payload of the message - don't forget to check the
+ *      size!
+ * size -  The size of the payload. The size will be 0 if there is no payload.
  */
-const uint8_t ISO_TP_DEFAULT_RESPONSE_TIMEOUT;
-
-/* Private: Determines if by default, padding is added to ISO-TP message frames.
- */
-const bool ISO_TP_DEFAULT_FRAME_PADDING_STATUS;
+typedef struct {
+    const uint16_t arbitration_id;
+    uint8_t payload[OUR_MAX_ISO_TP_MESSAGE_SIZE];
+    uint16_t size;
+    bool completed;
+} IsoTpMessage;
 
 /* Public: The type signature for an optional logging function, if the user
  * wishes to provide one. It should print, store or otherwise display the
@@ -53,7 +72,7 @@ typedef bool (*SetTimerShim)(uint16_t time_ms, void (*callback));
  *
  * message - The received message.
  */
-typedef void (*IsoTpMessageReceivedHandler)(const struct IsoTpMessage* message);
+typedef void (*IsoTpMessageReceivedHandler)(const IsoTpMessage* message);
 
 /* Public: the signature for a function to be called when an ISO-TP message has
  * been completely sent, or had a fatal error during sending.
@@ -61,7 +80,7 @@ typedef void (*IsoTpMessageReceivedHandler)(const struct IsoTpMessage* message);
  * message - The sent message.
  * success - True if the message was sent successfully.
  */
-typedef void (*IsoTpMessageSentHandler)(const struct IsoTpMessage* message,
+typedef void (*IsoTpMessageSentHandler)(const IsoTpMessage* message,
         const bool success);
 
 /* Public: The signature for a function to be called when a CAN frame has been
@@ -71,26 +90,7 @@ typedef void (*IsoTpMessageSentHandler)(const struct IsoTpMessage* message,
  *
  * message - The ISO-TP message that generated this CAN frame.
  */
-typedef void (*IsoTpCanFrameSentHandler)(const struct IsoTpMessage* message);
-
-/* Public: A container for a sent or received ISO-TP message.
- *
- * completed - An IsoTpMessage is the return value from a few functions - this
- *      attribute will be true if the message is actually completely received.
- *      If the function returns but is only partially through receiving the
- *      message, this will be false and you should not consider the other data
- *      to be valid.
- * arbitration_id - The arbitration ID of the message.
- * payload - The optional payload of the message - don't forget to check the
- *      size!
- * size -  The size of the payload. The size will be 0 if there is no payload.
- */
-typedef struct {
-    const uint16_t arbitration_id;
-    uint8_t payload[OUR_MAX_ISO_TP_MESSAGE_SIZE];
-    uint16_t size;
-    bool completed;
-} IsoTpMessage;
+typedef void (*IsoTpCanFrameSentHandler)(const IsoTpMessage* message);
 
 /* Public: A container for the 3 shim functions used by the library to interact
  * with the wider system.

@@ -1,14 +1,16 @@
 #include <isotp/receive.h>
+#include <bitfield/bitfield.h>
+#include <string.h>
+
+static void isotp_complete_receive(IsoTpReceiveHandle* handle, IsoTpMessage* message) {
+    if(handle->message_received_callback != NULL) {
+        handle->message_received_callback(message);
+    }
+}
 
 bool isotp_handle_single_frame(IsoTpReceiveHandle* handle, IsoTpMessage* message) {
     isotp_complete_receive(handle, message);
     return true;
-}
-
-void isotp_complete_receive(IsoTpReceiveHandle* handle, IsoTpMessage* message) {
-    if(handle->message_received_callback != NULL) {
-        handle->message_received_callback(message);
-    }
 }
 
 IsoTpReceiveHandle isotp_receive(IsoTpShims* shims,

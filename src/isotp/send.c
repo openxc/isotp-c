@@ -1,4 +1,6 @@
 #include <isotp/send.h>
+#include <bitfield/bitfield.h>
+#include <string.h>
 
 #define PCI_NIBBLE_INDEX 0
 #define PAYLOAD_LENGTH_NIBBLE_INDEX 1

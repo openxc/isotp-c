@@ -1,9 +1,6 @@
 #include <isotp/isotp.h>
 #include <bitfield/bitfield.h>
 
-const uint8_t ISO_TP_DEFAULT_RESPONSE_TIMEOUT = 100;
-const bool ISO_TP_DEFAULT_FRAME_PADDING_STATUS = true;
-
 /* void isotp_set_timeout(IsoTpHandler* handler, uint16_t timeout_ms) { */
     /* handler->timeout_ms = timeout_ms; */
 /* } */

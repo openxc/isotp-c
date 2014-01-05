@@ -41,8 +41,11 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
 
     if(handle->arbitration_id != arbitration_id) {
         if(shims->log != NULL)  {
-            shims->log("The arb ID 0x%x doesn't match the expected rx ID 0x%x",
-                    arbitration_id, handle->arbitration_id);
+            // You may turn this on for debugging, but in normal operation it's
+            // very noisy if you are passing all received CAN messages to this
+            // handler.
+            /* shims->log("The arb ID 0x%x doesn't match the expected rx ID 0x%x", */
+                    /* arbitration_id, handle->arbitration_id); */
         }
         return message;
     }

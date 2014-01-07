@@ -34,7 +34,7 @@ START_TEST (test_send_empty_payload)
     fail_unless(handle.completed);
     ck_assert_int_eq(last_message_sent_arb_id, arbitration_id);
     fail_unless(last_message_sent_status);
-    ck_assert_int_eq(last_message_sent_payload[0], NULL);
+    ck_assert_int_eq(last_message_sent_payload[0], '\0');
     ck_assert_int_eq(last_message_sent_payload_size, 0);
 
     ck_assert_int_eq(last_can_frame_sent_arb_id, arbitration_id);

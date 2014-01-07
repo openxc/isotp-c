@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 
 IsoTpShims SHIMS;
 IsoTpReceiveHandle RECEIVE_HANDLE;
@@ -30,7 +31,7 @@ void debug(const char* format, ...) {
     va_end(args);
 }
 
-void mock_send_can(const uint16_t arbitration_id, const uint8_t* data,
+bool mock_send_can(const uint16_t arbitration_id, const uint8_t* data,
         const uint8_t size) {
     can_frame_was_sent = true;
     last_can_frame_sent_arb_id = arbitration_id;
@@ -38,9 +39,7 @@ void mock_send_can(const uint16_t arbitration_id, const uint8_t* data,
     if(size > 0) {
         memcpy(last_can_payload_sent, data, size);
     }
-}
-
-void mock_set_timer(uint16_t time_ms, void (*callback)) {
+    return true;
 }
 
 void message_received(const IsoTpMessage* message) {
@@ -80,7 +79,7 @@ void can_frame_sent(const uint16_t arbitration_id, const uint8_t* payload,
 }
 
 void setup() {
-    SHIMS = isotp_init_shims(debug, mock_send_can, mock_set_timer);
+    SHIMS = isotp_init_shims(debug, mock_send_can, NULL);
     RECEIVE_HANDLE = isotp_receive(&SHIMS, 0x2a, message_received);
     memset(last_message_sent_payload, 0, OUR_MAX_ISO_TP_MESSAGE_SIZE);
     memset(last_message_received_payload, 0, OUR_MAX_ISO_TP_MESSAGE_SIZE);

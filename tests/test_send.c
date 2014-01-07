@@ -48,8 +48,7 @@ START_TEST (test_send_single_frame)
 {
     const uint8_t payload[] = {0x12, 0x34};
     uint16_t arbitration_id = 0x2a;
-    IsoTpSendHandle handle = isotp_send(&SHIMS, arbitration_id, payload,
-            sizeof(payload), message_sent);
+    isotp_send(&SHIMS, arbitration_id, payload, sizeof(payload), message_sent);
     ck_assert_int_eq(last_message_sent_arb_id, arbitration_id);
     fail_unless(last_message_sent_status);
     ck_assert_int_eq(last_message_sent_payload[0], 0x12);

@@ -96,11 +96,20 @@ typedef void (*IsoTpCanFrameSentHandler)(const IsoTpMessage* message);
  * with the wider system.
  *
  * Use the isotp_init_shims(...) function to create an instance of this struct.
+ *
+ * By default, all CAN frames sent from this device in the process of an ISO-TP
+ * message are padded out to a complete 8 byte frame. This is often required by
+ * ECUs. To disable this feature, change the 'frame_padding' field to false on
+ * the IsoTpShims object returned from isotp_init_shims(...).
+ *
+ * frame_padding - true if outgoing CAN frames should be padded to a full 8
+ *      bytes.
  */
 typedef struct {
     LogShim log;
     SendCanMessageShim send_can_message;
     SetTimerShim set_timer;
+    bool frame_padding;
 } IsoTpShims;
 
 /* Private: PCI types, for identifying each frame of an ISO-TP message.

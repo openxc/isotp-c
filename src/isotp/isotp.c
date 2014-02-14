@@ -10,7 +10,8 @@ IsoTpShims isotp_init_shims(LogShim log, SendCanMessageShim send_can_message,
     IsoTpShims shims = {
         log: log,
         send_can_message: send_can_message,
-        set_timer: set_timer
+        set_timer: set_timer,
+        frame_padding: ISO_TP_DEFAULT_FRAME_PADDING_STATUS
     };
     return shims;
 }

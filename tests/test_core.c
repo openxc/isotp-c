@@ -26,26 +26,21 @@ extern uint8_t last_message_sent_payload_size;
 
 extern void setup();
 
-START_TEST (test_send_empty_payload)
+START_TEST (test_default_frame_padding_on)
 {
-    SHIMS.frame_padding = false;
+    ck_assert(SHIMS.frame_padding);
+    const uint8_t payload[] = {0x12, 0x34};
     uint16_t arbitration_id = 0x2a;
-    IsoTpSendHandle handle = isotp_send(&SHIMS, arbitration_id, NULL, 0, message_sent);
-    fail_unless(handle.success);
-    fail_unless(handle.completed);
+    isotp_send(&SHIMS, arbitration_id, payload, sizeof(payload), message_sent);
     ck_assert_int_eq(last_message_sent_arb_id, arbitration_id);
     fail_unless(last_message_sent_status);
-    ck_assert_int_eq(last_message_sent_payload[0], '\0');
-    ck_assert_int_eq(last_message_sent_payload_size, 0);
+    ck_assert_int_eq(last_message_sent_payload_size, 2);
+    ck_assert_int_eq(last_can_payload_size, 8);
 
-    ck_assert_int_eq(last_can_frame_sent_arb_id, arbitration_id);
-    fail_unless(can_frame_was_sent);
-    ck_assert_int_eq(last_can_payload_sent[0], 0x0);
-    ck_assert_int_eq(last_can_payload_size, 1);
 }
 END_TEST
 
-START_TEST (test_send_single_frame)
+START_TEST (test_disabled_frame_padding)
 {
     SHIMS.frame_padding = false;
     const uint8_t payload[] = {0x12, 0x34};
@@ -53,38 +48,18 @@ START_TEST (test_send_single_frame)
     isotp_send(&SHIMS, arbitration_id, payload, sizeof(payload), message_sent);
     ck_assert_int_eq(last_message_sent_arb_id, arbitration_id);
     fail_unless(last_message_sent_status);
-    ck_assert_int_eq(last_message_sent_payload[0], 0x12);
-    ck_assert_int_eq(last_message_sent_payload[1], 0x34);
     ck_assert_int_eq(last_message_sent_payload_size, 2);
-
-    ck_assert_int_eq(last_can_frame_sent_arb_id, arbitration_id);
-    fail_unless(can_frame_was_sent);
-    ck_assert_int_eq(last_can_payload_sent[0], 0x2);
-    ck_assert_int_eq(last_can_payload_sent[1], 0x12);
-    ck_assert_int_eq(last_can_payload_sent[2], 0x34);
     ck_assert_int_eq(last_can_payload_size, 3);
-}
-END_TEST
 
-START_TEST (test_send_multi_frame)
-{
-    const uint8_t payload[] = {0x12, 0x34, 0x56, 0x78, 0x90, 0x01, 0x23,
-            0x45, 0x67, 0x89};
-    uint16_t arbitration_id = 0x2a;
-    IsoTpSendHandle handle = isotp_send(&SHIMS, arbitration_id, payload, sizeof(payload),
-            message_sent);
-    fail_unless(handle.completed);
-    fail_if(handle.success);
 }
 END_TEST
 
 Suite* testSuite(void) {
     Suite* s = suite_create("iso15765");
-    TCase *tc_core = tcase_create("send");
+    TCase *tc_core = tcase_create("core");
     tcase_add_checked_fixture(tc_core, setup, NULL);
-    tcase_add_test(tc_core, test_send_empty_payload);
-    tcase_add_test(tc_core, test_send_single_frame);
-    tcase_add_test(tc_core, test_send_multi_frame);
+    tcase_add_test(tc_core, test_default_frame_padding_on);
+    tcase_add_test(tc_core, test_disabled_frame_padding);
     suite_add_tcase(s, tc_core);
 
     return s;

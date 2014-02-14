@@ -29,8 +29,6 @@ typedef struct {
     IsoTpMessageReceivedHandler message_received_callback;
     uint16_t timeout_ms;
     // timeout_ms: ISO_TP_DEFAULT_RESPONSE_TIMEOUT,
-    bool frame_padding;
-    // frame_padding: ISO_TP_DEFAULT_FRAME_PADDING_STATUS,
     uint8_t* receive_buffer;
     uint16_t received_buffer_size;
     uint16_t incoming_message_size;

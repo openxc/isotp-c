@@ -37,7 +37,7 @@ IsoTpSendHandle isotp_send_single_frame(IsoTpShims* shims, IsoTpMessage* message
     }
 
     shims->send_can_message(message->arbitration_id, can_data,
-            1 + message->size);
+            shims->frame_padding ? 8 : 1 + message->size);
     handle.success = true;
     isotp_complete_send(shims, message, true, callback);
     return handle;

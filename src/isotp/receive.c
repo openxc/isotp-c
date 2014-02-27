@@ -14,7 +14,7 @@ bool isotp_handle_single_frame(IsoTpReceiveHandle* handle, IsoTpMessage* message
 }
 
 IsoTpReceiveHandle isotp_receive(IsoTpShims* shims,
-        const uint16_t arbitration_id, IsoTpMessageReceivedHandler callback) {
+        const uint32_t arbitration_id, IsoTpMessageReceivedHandler callback) {
     IsoTpReceiveHandle handle = {
         success: false,
         completed: false,
@@ -26,7 +26,7 @@ IsoTpReceiveHandle isotp_receive(IsoTpShims* shims,
 }
 
 IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
-        IsoTpReceiveHandle* handle, const uint16_t arbitration_id,
+        IsoTpReceiveHandle* handle, const uint32_t arbitration_id,
         const uint8_t data[], const uint8_t size) {
     IsoTpMessage message = {
         arbitration_id: arbitration_id,

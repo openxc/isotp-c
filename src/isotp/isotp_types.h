@@ -38,7 +38,7 @@ extern "C" {
  * size -  The size of the payload. The size will be 0 if there is no payload.
  */
 typedef struct {
-    const uint16_t arbitration_id;
+    const uint32_t arbitration_id;
     uint8_t payload[OUR_MAX_ISO_TP_MESSAGE_SIZE];
     uint16_t size;
     bool completed;
@@ -60,7 +60,7 @@ typedef void (*LogShim)(const char* message, ...);
  *
  * Returns true if the CAN message was sent successfully.
  */
-typedef bool (*SendCanMessageShim)(const uint16_t arbitration_id,
+typedef bool (*SendCanMessageShim)(const uint32_t arbitration_id,
         const uint8_t* data, const uint8_t size);
 
 /* Public: The type signature for a... TODO, not used yet.

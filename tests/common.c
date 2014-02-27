@@ -8,17 +8,17 @@
 IsoTpShims SHIMS;
 IsoTpReceiveHandle RECEIVE_HANDLE;
 
-uint16_t last_can_frame_sent_arb_id;
+uint32_t last_can_frame_sent_arb_id;
 uint8_t last_can_payload_sent[8];
 uint8_t last_can_payload_size;
 bool can_frame_was_sent;
 
 bool message_was_received;
-uint16_t last_message_received_arb_id;
+uint32_t last_message_received_arb_id;
 uint8_t last_message_received_payload[OUR_MAX_ISO_TP_MESSAGE_SIZE];
 uint8_t last_message_received_payload_size;
 
-uint16_t last_message_sent_arb_id;
+uint32_t last_message_sent_arb_id;
 bool last_message_sent_status;
 uint8_t last_message_sent_payload[OUR_MAX_ISO_TP_MESSAGE_SIZE];
 uint8_t last_message_sent_payload_size;
@@ -31,7 +31,7 @@ void debug(const char* format, ...) {
     va_end(args);
 }
 
-bool mock_send_can(const uint16_t arbitration_id, const uint8_t* data,
+bool mock_send_can(const uint32_t arbitration_id, const uint8_t* data,
         const uint8_t size) {
     can_frame_was_sent = true;
     last_can_frame_sent_arb_id = arbitration_id;
@@ -73,7 +73,7 @@ void message_sent(const IsoTpMessage* message, const bool success) {
     }
 }
 
-void can_frame_sent(const uint16_t arbitration_id, const uint8_t* payload,
+void can_frame_sent(const uint32_t arbitration_id, const uint8_t* payload,
         const uint8_t size) {
     debug("Sent CAN Frame with arb ID 0x%x and %d bytes", arbitration_id, size);
 }

@@ -30,7 +30,7 @@ START_TEST (test_default_frame_padding_on)
 {
     ck_assert(SHIMS.frame_padding);
     const uint8_t payload[] = {0x12, 0x34};
-    uint16_t arbitration_id = 0x2a;
+    uint32_t arbitration_id = 0x2a;
     isotp_send(&SHIMS, arbitration_id, payload, sizeof(payload), message_sent);
     ck_assert_int_eq(last_message_sent_arb_id, arbitration_id);
     fail_unless(last_message_sent_status);
@@ -44,7 +44,7 @@ START_TEST (test_disabled_frame_padding)
 {
     SHIMS.frame_padding = false;
     const uint8_t payload[] = {0x12, 0x34};
-    uint16_t arbitration_id = 0x2a;
+    uint32_t arbitration_id = 0x2a;
     isotp_send(&SHIMS, arbitration_id, payload, sizeof(payload), message_sent);
     ck_assert_int_eq(last_message_sent_arb_id, arbitration_id);
     fail_unless(last_message_sent_status);

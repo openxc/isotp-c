@@ -1,6 +1,10 @@
 #include <isotp/receive.h>
+#include <isotp/send.h>
 #include <bitfield/bitfield.h>
 #include <string.h>
+#include <stdlib.h>
+
+#define ARBITRATION_ID_OFFSET 0x8
 
 static void isotp_complete_receive(IsoTpReceiveHandle* handle, IsoTpMessage* message) {
     if(handle->message_received_callback != NULL) {
@@ -12,6 +16,27 @@ bool isotp_handle_single_frame(IsoTpReceiveHandle* handle, IsoTpMessage* message
     isotp_complete_receive(handle, message);
     return true;
 }
+
+bool isotp_handle_consecutive_frame(IsoTpReceiveHandle* handle, IsoTpMessage* message) {
+    
+    // call this once all consecutive frames have been received
+    isotp_complete_receive(handle, message);
+    return true;
+}
+
+bool isotp_send_flow_control_frame(IsoTpShims* shims, IsoTpMessage* message) {
+    uint8_t can_data[CAN_MESSAGE_BYTE_SIZE] = {0};
+
+    if(!set_nibble(PCI_NIBBLE_INDEX, PCI_FLOW_CONTROL_FRAME, can_data, sizeof(can_data))) {
+        shims->log("Unable to set PCI in CAN data");
+        return false;
+    }
+
+    shims->send_can_message(message->arbitration_id - ARBITRATION_ID_OFFSET, can_data,
+            shims->frame_padding ? 8 : 1 + message->size);
+    return true;
+}
+
 
 IsoTpReceiveHandle isotp_receive(IsoTpShims* shims,
         const uint32_t arbitration_id, IsoTpMessageReceivedHandler callback) {
@@ -53,10 +78,9 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
     IsoTpProtocolControlInformation pci = (IsoTpProtocolControlInformation)
             get_nibble(data, size, 0);
 
-    uint8_t payload_length = get_nibble(data, size, 1);
-    uint8_t payload[payload_length];
-    if(payload_length > 0 && size > 0) {
-        memcpy(payload, &data[1], payload_length);
+    shims->log("PCI: %d",pci);
+    for(uint8_t i=0;i<size;i++){
+        shims->log("Data %d: %x",i,data[i]);
     }
 
     // TODO this is set up to handle rx a response with a payload, but not to
@@ -65,18 +89,78 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
 
     switch(pci) {
         case PCI_SINGLE: {
+            uint8_t payload_length = get_nibble(data, size, 1);
+            
             if(payload_length > 0) {
-                memcpy(message.payload, payload, payload_length);
+                memcpy(message.payload, &data[1], payload_length);
             }
+            
             message.size = payload_length;
             message.completed = true;
             handle->success = true;
             handle->completed = true;
             isotp_handle_single_frame(handle, &message);
             break;
-         }
+        }
+        //If multi-frame, then the payload length is contained in the 12
+        //bits following the first nibble of Byte 0. 
+        case PCI_FIRST_FRAME: {
+            uint16_t payload_length = (get_nibble(data, size, 1) << 8) + get_byte(data, size, 1);
+            shims->log("First frame - data length %d",payload_length);
+
+            //Need to allocate memory for the combination of multi-frame
+            //messages. That way we don't have to allocate 4k of memory 
+            //for each multi-frame response.
+            uint8_t* combined_payload;
+
+            combined_payload = (uint8_t*)malloc(sizeof(uint8_t)*payload_length);
+
+            if(combined_payload == NULL) {
+                shims->log("Unable to allocate memory for multi-frame response.");
+                break;
+            }
+
+            memcpy(combined_payload, &data[2], CAN_MESSAGE_BYTE_SIZE - 2);
+            handle->receive_buffer = combined_payload;
+            handle->received_buffer_size = CAN_MESSAGE_BYTE_SIZE - 2;
+            handle->incoming_message_size = payload_length;
+
+            message.size = CAN_MESSAGE_BYTE_SIZE - 2;
+            message.completed = false;
+            handle->success = false;
+            handle->completed = false;
+            isotp_send_flow_control_frame(shims, &message);
+            break;
+        }
+        case PCI_CONSECUTIVE_FRAME: {
+            uint8_t start_index = handle->received_buffer_size;
+            uint8_t remaining_bytes = handle->incoming_message_size - start_index;
+            shims->log("Received consecutive frame.");
+            shims->log("Start Index: %d; Remaining Bytes: %d",start_index,remaining_bytes);
+
+            if(remaining_bytes > 7) {
+                memcpy(&handle->receive_buffer[start_index], &data[1], CAN_MESSAGE_BYTE_SIZE - 1);
+                handle->received_buffer_size = start_index + 7;
+                message.size = CAN_MESSAGE_BYTE_SIZE - 1;
+                message.completed = true;
+            } else {
+                memcpy(&handle->receive_buffer[start_index], &data[1], remaining_bytes);
+                handle->received_buffer_size = start_index + remaining_bytes;
+                message.size = remaining_bytes;
+                message.completed = true;
+                if(handle->received_buffer_size != handle->incoming_message_size){
+                    shims->log("Error capturing all bytes of multi-frame.");
+                    handle->success = false;
+                } else {
+                    shims->log("Successfully captured all of multi-frame.");
+                    handle->success = true;
+                }
+                handle->completed = true;
+            }
+            isotp_handle_consecutive_frame(handle, &message);
+            break;
+        }
         default:
-            shims->log("Only single frame messages are supported");
             break;
     }
     return message;

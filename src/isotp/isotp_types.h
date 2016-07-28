@@ -12,6 +12,12 @@
 // here - since we only handle single frame messages, 8 bytes is plenty.
 #define OUR_MAX_ISO_TP_MESSAGE_SIZE 8
 
+/* Private: IsoTp nibble specifics for PCI and Payload.
+ */
+#define PCI_NIBBLE_INDEX 0
+#define PAYLOAD_LENGTH_NIBBLE_INDEX 1
+#define PAYLOAD_BYTE_INDEX 1
+
 /* Private: The default timeout to use when waiting for a response during a
  * multi-frame send or receive.
  */

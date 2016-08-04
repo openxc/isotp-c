@@ -100,7 +100,6 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
         //bits following the first nibble of Byte 0. 
         case PCI_FIRST_FRAME: {
             uint16_t payload_length = (get_nibble(data, size, 1) << 8) + get_byte(data, size, 1);
-            shims->log("First frame - data length %d",payload_length);
 
             //Need to allocate memory for the combination of multi-frame
             //messages. That way we don't have to allocate 4k of memory 
@@ -127,8 +126,6 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
         case PCI_CONSECUTIVE_FRAME: {
             uint8_t start_index = handle->received_buffer_size;
             uint8_t remaining_bytes = handle->incoming_message_size - start_index;
-            shims->log("Received consecutive frame.");
-            shims->log("Start Index: %d; Remaining Bytes: %d",start_index,remaining_bytes);
 
             if(remaining_bytes > 7) {
                 memcpy(&handle->receive_buffer[start_index], &data[1], CAN_MESSAGE_BYTE_SIZE - 1);

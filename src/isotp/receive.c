@@ -17,8 +17,7 @@ bool isotp_handle_single_frame(IsoTpReceiveHandle* handle, IsoTpMessage* message
     return true;
 }
 
-bool isotp_handle_consecutive_frame(IsoTpReceiveHandle* handle, IsoTpMessage* message) {
-    
+bool isotp_handle_multi_frame(IsoTpReceiveHandle* handle, IsoTpMessage* message) {
     // call this once all consecutive frames have been received
     isotp_complete_receive(handle, message);
     return true;
@@ -78,11 +77,6 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
     IsoTpProtocolControlInformation pci = (IsoTpProtocolControlInformation)
             get_nibble(data, size, 0);
 
-    shims->log("PCI: %d",pci);
-    for(uint8_t i=0;i<size;i++){
-        shims->log("Data %d: %x",i,data[i]);
-    }
-
     // TODO this is set up to handle rx a response with a payload, but not to
     // handle flow control responses for multi frame messages that we're in the
     // process of sending
@@ -125,8 +119,6 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
             handle->received_buffer_size = CAN_MESSAGE_BYTE_SIZE - 2;
             handle->incoming_message_size = payload_length;
 
-            message.size = CAN_MESSAGE_BYTE_SIZE - 2;
-            message.completed = false;
             handle->success = false;
             handle->completed = false;
             isotp_send_flow_control_frame(shims, &message);
@@ -141,23 +133,26 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
             if(remaining_bytes > 7) {
                 memcpy(&handle->receive_buffer[start_index], &data[1], CAN_MESSAGE_BYTE_SIZE - 1);
                 handle->received_buffer_size = start_index + 7;
-                message.size = CAN_MESSAGE_BYTE_SIZE - 1;
-                message.completed = true;
             } else {
                 memcpy(&handle->receive_buffer[start_index], &data[1], remaining_bytes);
                 handle->received_buffer_size = start_index + remaining_bytes;
-                message.size = remaining_bytes;
-                message.completed = true;
+                
                 if(handle->received_buffer_size != handle->incoming_message_size){
-                    shims->log("Error capturing all bytes of multi-frame.");
+                    free(handle->receive_buffer);
                     handle->success = false;
+                    shims->log("Error capturing all bytes of multi-frame. Freeing memory.");
                 } else {
-                    shims->log("Successfully captured all of multi-frame.");
+                    memcpy(message.payload,&handle->receive_buffer[0],handle->incoming_message_size);
+                    free(handle->receive_buffer);
+                    message.size = handle->incoming_message_size;
+                    message.completed = true;
+                    shims->log("Successfully captured all of multi-frame. Freeing memory.");
+
                     handle->success = true;
+                    handle->completed = true;
+                    isotp_handle_multi_frame(handle, &message);
                 }
-                handle->completed = true;
             }
-            isotp_handle_consecutive_frame(handle, &message);
             break;
         }
         default:

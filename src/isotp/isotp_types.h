@@ -9,8 +9,8 @@
 #define MAX_ISO_TP_MESSAGE_SIZE 4096
 // TODO we want to avoid malloc, and we can't be allocated 4K on the stack for
 // each IsoTpMessage, so for now we're setting an artificial max message size
-// here - since we only handle single frame messages, 8 bytes is plenty.
-#define OUR_MAX_ISO_TP_MESSAGE_SIZE 8
+// here - for most multi-frame use cases, 256 bytes is plenty.
+#define OUR_MAX_ISO_TP_MESSAGE_SIZE 256
 
 /* Private: IsoTp nibble specifics for PCI and Payload.
  */

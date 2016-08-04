@@ -1,6 +1,6 @@
 # ISO 15765-2 Support Library in C
 
-## v0.1.1
+## v0.2
 
 * Add multi-frame support for diagnostic responses. An IsoTpMessage payload is
   currently limited to 256 bytes.

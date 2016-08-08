@@ -101,16 +101,15 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
         case PCI_FIRST_FRAME: {
             uint16_t payload_length = (get_nibble(data, size, 1) << 8) + get_byte(data, size, 1);
 
-            //Need to allocate memory for the combination of multi-frame
-            //messages. That way we don't have to allocate 4k of memory 
-            //for each multi-frame response.
-            uint8_t* combined_payload = NULL;
-
             if(payload_length > OUR_MAX_ISO_TP_MESSAGE_SIZE) {
                 shims->log("Multi-frame response too large for receive buffer.");
                 break;
             }
 
+            //Need to allocate memory for the combination of multi-frame
+            //messages. That way we don't have to allocate 4k of memory 
+            //for each multi-frame response.
+            uint8_t* combined_payload = NULL;
             combined_payload = (uint8_t*)malloc(sizeof(uint8_t)*payload_length);
 
             if(combined_payload == NULL) {

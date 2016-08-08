@@ -86,24 +86,24 @@ END_TEST
 START_TEST (test_receive_multi_frame)
 {
     const uint8_t data0[CAN_MESSAGE_BYTE_SIZE] = {0x10, 0x14, 0x49, 0x02, 0x01, 0x31, 0x46, 0x4d};
-    IsoTpMessage message = isotp_continue_receive(&SHIMS, &RECEIVE_HANDLE, 0x2a, data0, 8);
+    IsoTpMessage message0 = isotp_continue_receive(&SHIMS, &RECEIVE_HANDLE, 0x2a, data0, 8);
     fail_unless(!RECEIVE_HANDLE.completed);
-    fail_unless(!message.completed);
+    fail_unless(!message0.completed);
     fail_unless(!message_was_received);
     //make sure flow control message has been sent.
     ck_assert_int_eq(last_can_frame_sent_arb_id, 0x2a - 8);
     ck_assert_int_eq(last_can_payload_sent, 0x30);
 
     const uint8_t data1[CAN_MESSAGE_BYTE_SIZE] = {0x21, 0x43, 0x55, 0x39, 0x4a, 0x39, 0x34, 0x48};
-    message = isotp_continue_receive(&SHIMS, &RECEIVE_HANDLE, 0x2a, data1, 8);
+    IsoTpMessage message1 = isotp_continue_receive(&SHIMS, &RECEIVE_HANDLE, 0x2a, data1, 8);
     fail_unless(!RECEIVE_HANDLE.completed);
-    fail_unless(!message.completed);
+    fail_unless(!message1.completed);
     fail_unless(!message_was_received);
 
     const uint8_t data2[CAN_MESSAGE_BYTE_SIZE] = {0x22, 0x55, 0x41, 0x30, 0x34, 0x35, 0x32, 0x34};
-    message = isotp_continue_receive(&SHIMS, &RECEIVE_HANDLE, 0x2a, data2, 8);
+    IsoTpMessage message2 = isotp_continue_receive(&SHIMS, &RECEIVE_HANDLE, 0x2a, data2, 8);
     fail_unless(RECEIVE_HANDLE.completed);
-    fail_unless(message.completed);
+    fail_unless(message2.completed);
     fail_unless(message_was_received);
 
     ck_assert_int_eq(last_message_received_arb_id, 0x2a);
@@ -135,8 +135,8 @@ START_TEST (test_receive_large_multi_frame)
 {
     const uint8_t data0[CAN_MESSAGE_BYTE_SIZE] = {0x11, 0x01, 0x49, 0x02, 0x01, 0x31, 0x46, 0x4d};
     IsoTpMessage message = isotp_continue_receive(&SHIMS, &RECEIVE_HANDLE, 0x2a, data0, 8);
-    //Make sure we don't try to receive messages that are too large.
-    ck_assert_ptr_eq(RECEIVE_HANDLE.receive_buffer, NULL);
+    //Make sure we don't try to receive messages that are too large and don't send flow control.
+    fail_unless(!can_frame_was_sent);
     fail_unless(!RECEIVE_HANDLE.completed);
     fail_unless(!message.completed);
     fail_unless(!message_was_received);

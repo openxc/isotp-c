@@ -5,4 +5,4 @@ script: make test
 before_install:
     - git submodule update --init
     - sudo apt-get update -qq
-    - sudo apt-get install check=0.10.0
+    - sudo apt-get install check

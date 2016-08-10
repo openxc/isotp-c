@@ -55,6 +55,7 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
     IsoTpMessage message = {
         arbitration_id: arbitration_id,
         completed: false,
+        multi_frame: false,
         payload: {0},
         size: 0
     };
@@ -122,6 +123,7 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
             handle->received_buffer_size = CAN_MESSAGE_BYTE_SIZE - 2;
             handle->incoming_message_size = payload_length;
 
+            message.multi_frame = true;
             handle->success = false;
             handle->completed = false;
             isotp_send_flow_control_frame(shims, &message);
@@ -130,6 +132,7 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
         case PCI_CONSECUTIVE_FRAME: {
             uint8_t start_index = handle->received_buffer_size;
             uint8_t remaining_bytes = handle->incoming_message_size - start_index;
+            message.multi_frame = true;
 
             if(remaining_bytes > 7) {
                 memcpy(&handle->receive_buffer[start_index], &data[1], CAN_MESSAGE_BYTE_SIZE - 1);
@@ -137,7 +140,7 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
             } else {
                 memcpy(&handle->receive_buffer[start_index], &data[1], remaining_bytes);
                 handle->received_buffer_size = start_index + remaining_bytes;
-                
+
                 if(handle->received_buffer_size != handle->incoming_message_size){
                     free(handle->receive_buffer);
                     handle->success = false;

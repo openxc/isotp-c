@@ -90,6 +90,7 @@ START_TEST (test_receive_multi_frame)
     fail_unless(!RECEIVE_HANDLE.completed);
     fail_unless(!message0.completed);
     fail_unless(!message_was_received);
+    fail_unless(message0.multi_frame);
     //make sure flow control message has been sent.
     ck_assert_int_eq(last_can_frame_sent_arb_id, 0x2a - 8);
     ck_assert_int_eq(last_can_payload_sent, 0x30);
@@ -99,12 +100,14 @@ START_TEST (test_receive_multi_frame)
     fail_unless(!RECEIVE_HANDLE.completed);
     fail_unless(!message1.completed);
     fail_unless(!message_was_received);
+    fail_unless(message1.multi_frame);
 
     const uint8_t data2[CAN_MESSAGE_BYTE_SIZE] = {0x22, 0x55, 0x41, 0x30, 0x34, 0x35, 0x32, 0x34};
     IsoTpMessage message2 = isotp_continue_receive(&SHIMS, &RECEIVE_HANDLE, 0x2a, data2, 8);
     fail_unless(RECEIVE_HANDLE.completed);
     fail_unless(message2.completed);
     fail_unless(message_was_received);
+    fail_unless(message2.multi_frame);
 
     ck_assert_int_eq(last_message_received_arb_id, 0x2a);
     ck_assert_int_eq(last_message_received_payload_size, 0x14);
@@ -140,6 +143,7 @@ START_TEST (test_receive_large_multi_frame)
     fail_unless(!RECEIVE_HANDLE.completed);
     fail_unless(!message.completed);
     fail_unless(!message_was_received);
+    fail_unless(!message.multi_frame);
 }
 END_TEST
 

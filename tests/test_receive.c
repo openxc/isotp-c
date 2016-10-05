@@ -136,7 +136,7 @@ END_TEST
 
 START_TEST (test_receive_large_multi_frame)
 {
-    const uint8_t data0[CAN_MESSAGE_BYTE_SIZE] = {0x11, 0x01, 0x49, 0x02, 0x01, 0x31, 0x46, 0x4d};
+    const uint8_t data0[CAN_MESSAGE_BYTE_SIZE] = {0x10, 0x80, 0x49, 0x02, 0x01, 0x31, 0x46, 0x4d};
     IsoTpMessage message = isotp_continue_receive(&SHIMS, &RECEIVE_HANDLE, 0x2a, data0, 8);
     //Make sure we don't try to receive messages that are too large and don't send flow control.
     fail_unless(!can_frame_was_sent);

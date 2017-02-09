@@ -24,6 +24,7 @@ extern "C" {
 typedef struct {
     bool completed;
     bool success;
+	IsoTpMessage message;
 
     // Private
     uint16_t sending_arbitration_id;
@@ -56,6 +57,33 @@ typedef struct {
 IsoTpSendHandle isotp_send(IsoTpShims* shims, const uint16_t arbitration_id,
         const uint8_t payload[], uint16_t size,
         IsoTpMessageSentHandler callback);
+				
+/* Public: Send First Frame of ISO-TP message that is greater than 7 bytes.
+ *
+ * shims -  Low-level shims required to send CAN messages, etc.
+ * message - shim that contains the arbitration_id, payload, size
+ * callback - an optional function to be called when the message is completely
+ *      sent (use NULL if no callback required).
+ *
+ * Returns true if the message was completely sent, or the send was
+ *      otherwise cancelled. Check the 'success' field of the handle to see if
+ *      it was successful.
+ */IsoTpSendHandle isotp_send_multi_frame(IsoTpShims* shims, IsoTpMessage* message,
+        IsoTpMessageSentHandler callback);
+		
+/* Public: Send Second Frames of ISO-TP message that is greater than 7 bytes.
+ *
+ * shims -  Low-level shims required to send CAN messages, etc.
+ * frame_count - keeps track of which frame in sequence
+ * num_frames - total number of frames needed to send message
+ * message - shim that contains the arbitration_id, payload, size
+ * callback - an optional function to be called when the message is completely
+ *      sent (use NULL if no callback required).
+ *
+ * Returns true if the message was completely sent.
+ */
+bool isotp_send_second_frame(IsoTpShims* shims, uint16_t frame_count, uint16_t num_frames, IsoTpSendHandle* handle,IsoTpMessage* message,
+        IsoTpMessageSentHandler callback); 
 
 /* Public: Continue to send a multi-frame ISO-TP message, based on a freshly
  * received CAN message (potentially from the receiver about flow control).
@@ -75,9 +103,12 @@ IsoTpSendHandle isotp_send(IsoTpShims* shims, const uint16_t arbitration_id,
  *      otherwise cancelled. Check the 'success' field of the handle to see if
  *      it was successful.
  */
-bool isotp_continue_send(IsoTpShims* shims, IsoTpSendHandle* handle,
+void isotp_continue_send(IsoTpShims* shims, IsoTpSendHandle* handle,
         const uint16_t arbitration_id, const uint8_t data[],
         const uint8_t size);
+		
+void isotp_complete_send(IsoTpShims* shims, IsoTpMessage* message,
+        bool status, IsoTpMessageSentHandler callback);
 
 #ifdef __cplusplus
 }

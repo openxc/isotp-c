@@ -100,61 +100,28 @@ IsoTpSendHandle isotp_send_multi_frame(IsoTpShims* shims, IsoTpMessage* message,
 	// send the CAN message and update handler to be true
     shims->send_can_message(message->arbitration_id, can_data,
             shims->frame_padding ? 8 : 1 + message->size);
+	handle.message = *message;
     handle.success = true;
     isotp_complete_send(shims, message, true, callback);
     return handle;
 }
 
-IsoTpSendHandle isotp_send_first_frame(IsoTpShims* shims, IsoTpSendHandle &handle, IsoTpMessage* message,
+bool isotp_send_second_frame(IsoTpShims* shims, uint16_t frame_count, uint16_t num_frames,IsoTpMessage* message,
         IsoTpMessageSentHandler callback) {
-	// create the buffer
-	uint8_t can_data[CAN_MESSAGE_BYTE_SIZE] = {0};
-	
-	// define the message header as first CAN frame (PCI_FIRST_FRAME) in first nibble
-    if(!set_nibble(PCI_NIBBLE_INDEX, PCI_FIRST_FRAME, can_data, sizeof(can_data))) {
-        shims->log("Unable to set PCI in first frame CAN data");
-        return handle;
-    }
-
-	// define the total message size (note, now we have 3 nibbles instead of 1)
-	if(!set_bitfield(message->size,4,12,can_data,sizeof(can_data))){
-        shims->log("Unable to set payload length in CAN data");
-        return handle;
-    }
-
-	// begin payload after byte 2, but only copy first 6
-    if(message->size > 0) {
-        memcpy(&can_data[MULTI_PAYLOAD_BYTE_INDEX], message->payload, 6);
-    }
-	
-	// send the CAN message and update handler to be true
-    shims->send_can_message(message->arbitration_id, can_data,
-            shims->frame_padding ? 8 : 1 + message->size);
-    handle.success = true;
-    isotp_complete_send(shims, message, true, callback);
-    return handle;
-}
-
-IsoTpSendHandle isotp_send_second_frame(IsoTpShims* shims, uint16_t frame_count, uint16_t num_frames, IsoTpSendHandle &handle,IsoTpMessage* message,
-        IsoTpMessageSentHandler callback) {
-
-	// reset the handle success value
-	handle.success = false;
-	
 	// create the buffer
 	uint8_t can_data[CAN_MESSAGE_BYTE_SIZE] = {0};
 	
 	// define the message header as second CAN frame (PCI_CONSECUTIVE_FRAME) in first nibble
     if(!set_nibble(PCI_NIBBLE_INDEX, PCI_CONSECUTIVE_FRAME, can_data, sizeof(can_data))) {
         shims->log("Unable to set PCI in second frame CAN data");
-        return handle;
+        return false;
     }
 
 	// define which consecutive frame this is in the second nibble
     if(!set_nibble(PAYLOAD_LENGTH_NIBBLE_INDEX, message->size, can_data,
                 sizeof(can_data))) {
         shims->log("Unable to set second frame number in CAN data");
-        return handle;
+        return false;
     }
 
 	// copy the payload and send the message
@@ -173,30 +140,32 @@ IsoTpSendHandle isotp_send_second_frame(IsoTpShims* shims, uint16_t frame_count,
 	}
 	
 	// send the CAN message and update handler to be true
-    handle.success = true;
     isotp_complete_send(shims, message, true, callback);
-    return handle;
+    return true;
 }
 
-IsoTpSendHandle isotp_continue_send(IsoTpShims* shims, IsoTpSendHandle* handle,
+void isotp_continue_send(IsoTpShims* shims, IsoTpSendHandle* handle,
         const uint16_t arbitration_id, const uint8_t data[],
         const uint8_t size) {
 		
 	// we need the flowcontrol Ack here
-	if(handle->receiving_arbitration_id != arbitration_id + 0x08){
+	if(handle->receiving_arbitration_id != arbitration_id + 0x08 || get_nibble(data, sizeof(data), PCI_NIBBLE_INDEX) != 0x3){
         shims->log("Incorrect flowcontrol response");
 		handle.success = false;
-		return handle;
+		return;
 	}
 	
 	// first we compute how many CAN frames are necessary
-	uint16_t num_can_frames = message->size/8;
+	uint16_t num_can_frames = handle->message.size/8;
 	
 	// send all the CAN second frames
 	for(uint16_t count = 1; count <= num_can_frames; i++){
-		isotp_send_second_frame(&shims, count, num_can_frames, handle, &message, callback);
+		// if one of them fails to send, break for loop and return handle
+		if(!isotp_send_second_frame(shims, count, num_can_frames, &handle->message, callback)){
+			handle->success = false;
+			return;
+		}
 	}
 	
-	handle.completed = true;
-	return handle;
+	handle->completed = true;
 }

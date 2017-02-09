@@ -74,7 +74,8 @@ IsoTpSendHandle isotp_send_multi_frame(IsoTpShims* shims, IsoTpMessage* message,
 	// note that we intentionally mark handle.completed as false to ensure UDS knows to continue sending
     IsoTpSendHandle handle = {
         success: false,
-        completed: false
+        completed: false,
+		message: *message
     };
 			
 	// create the buffer
@@ -100,7 +101,6 @@ IsoTpSendHandle isotp_send_multi_frame(IsoTpShims* shims, IsoTpMessage* message,
 	// send the CAN message and update handler to be true
     shims->send_can_message(message->arbitration_id, can_data,
             shims->frame_padding ? 8 : 1 + message->size);
-	handle.message = *message;
     handle.success = true;
     isotp_complete_send(shims, message, true, callback);
     return handle;
@@ -127,7 +127,7 @@ bool isotp_send_second_frame(IsoTpShims* shims, uint16_t frame_count, uint16_t n
 	// copy the payload and send the message
 	// note that payload reference is shifted by first 6 bits of first frame, and 7 for each consecutive
 	// last frame we only need to take remainder
-	uint16_t shift = 6+(count-1)*7;
+	uint16_t shift = 6+(frame_count-1)*7;
     if(frame_count < num_frames) {	
 		// begin payload after first byte, accounting for first frame has 6 bits and each second takes 7
 		memcpy(&can_data[1], message->payload + shift, 7); 
@@ -151,7 +151,7 @@ void isotp_continue_send(IsoTpShims* shims, IsoTpSendHandle* handle,
 	// we need the flowcontrol Ack here
 	if(handle->receiving_arbitration_id != arbitration_id + 0x08 || get_nibble(data, sizeof(data), PCI_NIBBLE_INDEX) != 0x3){
         shims->log("Incorrect flowcontrol response");
-		handle.success = false;
+		handle->success = false;
 		return;
 	}
 	
@@ -159,9 +159,9 @@ void isotp_continue_send(IsoTpShims* shims, IsoTpSendHandle* handle,
 	uint16_t num_can_frames = handle->message.size/8;
 	
 	// send all the CAN second frames
-	for(uint16_t count = 1; count <= num_can_frames; i++){
+	for(uint16_t count = 1; count <= num_can_frames; count++){
 		// if one of them fails to send, break for loop and return handle
-		if(!isotp_send_second_frame(shims, count, num_can_frames, &handle->message, callback)){
+		if(!isotp_send_second_frame(shims, count, num_can_frames, &handle->message, NULL)){
 			handle->success = false;
 			return;
 		}

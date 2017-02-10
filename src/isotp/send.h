@@ -24,7 +24,7 @@ extern "C" {
 typedef struct {
     bool completed;
     bool success;
-	IsoTpMessage message;
+    IsoTpMessage message;
 
     // Private
     uint16_t sending_arbitration_id;

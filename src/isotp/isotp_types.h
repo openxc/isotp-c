@@ -45,7 +45,7 @@ extern "C" {
  * size -  The size of the payload. The size will be 0 if there is no payload.
  */
 typedef struct {
-    const uint32_t arbitration_id;
+    uint32_t arbitration_id;
     uint8_t payload[OUR_MAX_ISO_TP_MESSAGE_SIZE];
     uint16_t size;
     bool completed;

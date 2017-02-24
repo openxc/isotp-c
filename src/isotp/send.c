@@ -156,7 +156,8 @@ bool isotp_continue_send(IsoTpShims* shims, IsoTpSendHandle* handle,
 	uint8_t num_can_frames = 1+ size / frame_length;
 	
 	// send all the CAN second frames
-	for(uint16_t count = 1; count < num_can_frames; count++){
+	uint16_t count; 
+	for(count = 1; count < num_can_frames; count++){
 		// if one of them fails to send, break for loop and return handle
 		if(!isotp_send_second_frame(shims, count, num_can_frames, arbitration_id, data, size)){
 			handle->success = false;

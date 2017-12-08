@@ -1,8 +1,8 @@
 #include <isotp/receive.h>
+#include <isotp/allocate.h>
 #include <isotp/send.h>
 #include <bitfield/bitfield.h>
 #include <string.h>
-#include <stdlib.h>
 
 #define ARBITRATION_ID_OFFSET 0x8
 
@@ -111,7 +111,7 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
             //messages. That way we don't have to allocate 4k of memory 
             //for each multi-frame response.
             uint8_t* combined_payload = NULL;
-            combined_payload = (uint8_t*)malloc(sizeof(uint8_t)*payload_length);
+            combined_payload = allocate(payload_length);
 
             if(combined_payload == NULL) {
                 shims->log("Unable to allocate memory for multi-frame response.");
@@ -142,12 +142,12 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
                 handle->received_buffer_size = start_index + remaining_bytes;
 
                 if(handle->received_buffer_size != handle->incoming_message_size){
-                    free(handle->receive_buffer);
+                    free_allocated(handle->receive_buffer);
                     handle->success = false;
                     shims->log("Error capturing all bytes of multi-frame. Freeing memory.");
                 } else {
                     memcpy(message.payload,&handle->receive_buffer[0],handle->incoming_message_size);
-                    free(handle->receive_buffer);
+                    free_allocated(handle->receive_buffer);
                     message.size = handle->incoming_message_size;
                     message.completed = true;
                     shims->log("Successfully captured all of multi-frame. Freeing memory.");

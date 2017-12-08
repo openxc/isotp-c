@@ -1,4 +1,5 @@
 #include <isotp/isotp.h>
+#include <isotp/allocate.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -89,3 +90,10 @@ void setup() {
     can_frame_was_sent = false;
 }
 
+uint8_t* allocate(size_t size) {
+    return (uint8_t*) malloc((sizeof(uint8_t))* size);
+}
+
+void free_allocated(uint8_t* data) {
+    free(data);
+}

@@ -25,12 +25,12 @@ typedef struct {
     bool completed;
     bool success;
 
-    // Private
+    /* Private */
     uint16_t sending_arbitration_id;
     uint16_t receiving_arbitration_id;
     IsoTpMessageSentHandler message_sent_callback;
     IsoTpCanFrameSentHandler can_frame_sent_callback;
-    // TODO going to need some state here for multi frame messages
+    /* TODO going to need some state here for multi frame messages */
 } IsoTpSendHandle;
 
 /* Public: Initiate sending a single ISO-TP message.
@@ -83,4 +83,4 @@ bool isotp_continue_send(IsoTpShims* shims, IsoTpSendHandle* handle,
 }
 #endif
 
-#endif // __ISOTP_SEND_H__
+#endif /* __ISOTP_SEND_H__ */

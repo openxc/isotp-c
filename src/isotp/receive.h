@@ -24,15 +24,15 @@ typedef struct {
     bool completed;
     bool success;
 
-    // Private
+    /* Private */
     uint32_t arbitration_id;
     IsoTpMessageReceivedHandler message_received_callback;
     uint16_t timeout_ms;
-    // timeout_ms: ISO_TP_DEFAULT_RESPONSE_TIMEOUT,
+    /* timeout_ms: ISO_TP_DEFAULT_RESPONSE_TIMEOUT, */
     uint8_t* receive_buffer;
     uint16_t received_buffer_size;
     uint16_t incoming_message_size;
-    // TODO timer callback for multi frame
+    /* TODO timer callback for multi frame */
 } IsoTpReceiveHandle;
 
 /* Public: Initiate receiving a single ISO-TP message on a particular
@@ -83,4 +83,4 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
 }
 #endif
 
-#endif // __ISOTP_RECEIVE_H__
+#endif /* __ISOTP_RECEIVE_H__ */

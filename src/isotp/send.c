@@ -22,13 +22,15 @@ IsoTpSendHandle isotp_send_single_frame(IsoTpShims* shims, IsoTpMessage* message
 
     uint8_t can_data[CAN_MESSAGE_BYTE_SIZE] = {0};
     if(!set_nibble(PCI_NIBBLE_INDEX, PCI_SINGLE, can_data, sizeof(can_data))) {
-        shims->log("Unable to set PCI in CAN data");
+	if(shims->log)
+            shims->log("Unable to set PCI in CAN data");
         return handle;
     }
 
     if(!set_nibble(PAYLOAD_LENGTH_NIBBLE_INDEX, message->size, can_data,
                 sizeof(can_data))) {
-        shims->log("Unable to set payload length in CAN data");
+	if(shims->log)
+            shims->log("Unable to set payload length in CAN data");
         return handle;
     }
 
@@ -45,14 +47,15 @@ IsoTpSendHandle isotp_send_single_frame(IsoTpShims* shims, IsoTpMessage* message
 
 IsoTpSendHandle isotp_send_multi_frame(IsoTpShims* shims, IsoTpMessage* message,
         IsoTpMessageSentHandler callback) {
-    // TODO make sure to copy message into a local buffer
-    shims->log("Only single frame messages are supported");
+    /* TODO make sure to copy message into a local buffer */
+    if(shims->log)
+        shims->log("Only single frame messages are supported");
     IsoTpSendHandle handle = {
         success: false,
         completed: true
     };
-    // TODO need to set sending and receiving arbitration IDs separately if we
-    // can't always just add 0x8 (and I think we can't)
+    /* TODO need to set sending and receiving arbitration IDs separately if we
+       can't always just add 0x8 (and I think we can't) */
     return handle;
 }
 
@@ -75,11 +78,11 @@ IsoTpSendHandle isotp_send(IsoTpShims* shims, const uint16_t arbitration_id,
 bool isotp_continue_send(IsoTpShims* shims, IsoTpSendHandle* handle,
         const uint16_t arbitration_id, const uint8_t data[],
         const uint8_t size) {
-    // TODO this will need to be tested when we add multi-frame support,
-    // which is when it'll be necessary to pass in CAN messages to SENDING
-    // handles.
+    /* TODO this will need to be tested when we add multi-frame support,
+       which is when it'll be necessary to pass in CAN messages to SENDING
+       handles. */
     if(handle->receiving_arbitration_id != arbitration_id) {
-        if(shims->log != NULL) {
+        if(shims->log) {
             shims->log("The arb ID 0x%x doesn't match the expected tx continuation ID 0x%x",
                     arbitration_id, handle->receiving_arbitration_id);
         }

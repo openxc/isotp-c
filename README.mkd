@@ -27,7 +27,7 @@ system:
     // required, this must send a single CAN message with the given arbitration
     // ID (i.e. the CAN message ID) and data. The size will never be more than 8
     // bytes.
-    void send_can(const uint16_t arbitration_id, const uint8_t* data,
+    bool send_can(const uint32_t arbitration_id, const uint8_t* data,
             const uint8_t size) {
         ...
     }
@@ -39,7 +39,7 @@ system:
 
 
     // not used in the current version
-    void set_timer(uint16_t time_ms, void (*callback)) {
+    bool set_timer(uint16_t time_ms, void (*callback)) {
         ...
     }
 

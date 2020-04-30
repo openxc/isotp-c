@@ -7,6 +7,8 @@
 
 #define ARBITRATION_ID_OFFSET 0x8
 
+#define MULTIFRAME  1
+
 static void isotp_complete_receive(IsoTpReceiveHandle* handle, IsoTpMessage* message) {
     if(handle->message_received_callback != NULL) {
         handle->message_received_callback(message);
@@ -108,6 +110,11 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
                 break;
             }
 
+            //combined_payload - pre 2020 was large enough to hold the
+            // full diagnostic response.  When multiframe is fully
+            // implemented this will only need to be large enough to
+            // hold a 3 byte header. (gja)
+
             //Need to allocate memory for the combination of multi-frame
             //messages. That way we don't have to allocate 4k of memory 
             //for each multi-frame response.
@@ -128,6 +135,11 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
             handle->success = false;
             handle->completed = false;
             isotp_send_flow_control_frame(shims, &message);
+
+            // 4/27/2020 Return Partial (First frame has important 3 bytes of
+            // preamble code which contains mode and pid needed by UDS layer
+            memcpy(message.payload, &data[2], CAN_MESSAGE_BYTE_SIZE - 2);
+            message.size = CAN_MESSAGE_BYTE_SIZE - 2;
             break;
         }
         case PCI_CONSECUTIVE_FRAME: {
@@ -135,21 +147,38 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
             uint8_t remaining_bytes = handle->incoming_message_size - start_index;
             message.multi_frame = true;
 
-            if(remaining_bytes > 7) {
+            if(remaining_bytes > 7) {   // If > 7 then there will be another frame
                 memcpy(&handle->receive_buffer[start_index], &data[1], CAN_MESSAGE_BYTE_SIZE - 1);
                 handle->received_buffer_size = start_index + 7;
+
+                // 4/27/2020 - Return Partial Frame into message
+                memcpy(message.payload, &data[1],CAN_MESSAGE_BYTE_SIZE - 1);
+                message.size = CAN_MESSAGE_BYTE_SIZE - 1;
+
             } else {
                 memcpy(&handle->receive_buffer[start_index], &data[1], remaining_bytes);
                 handle->received_buffer_size = start_index + remaining_bytes;
 
+                // TODO: When receive_buffer is reduced, this condition will need to change
                 if(handle->received_buffer_size != handle->incoming_message_size){
                     free_allocated(handle->receive_buffer);
                     handle->success = false;
                     shims->log("Error capturing all bytes of multi-frame. Freeing memory.");
                 } else {
+#if (MULTIFRAME==1)
+                    // Copy the 3 bytes of header and Only copy the last partial
+                    // into message.payload
+                    int headersize = 3;
+                    memcpy(message.payload,&handle->receive_buffer[0], headersize);
+                    memcpy(&message.payload[headersize],&data[1], remaining_bytes);
+                    free_allocated(handle->receive_buffer);
+                    message.size = remaining_bytes + headersize;
+#else
+                    // Copy the full assembled meessage with it many parts into the output buffer "message"
                     memcpy(message.payload,&handle->receive_buffer[0],handle->incoming_message_size);
                     free_allocated(handle->receive_buffer);
                     message.size = handle->incoming_message_size;
+#endif
                     message.completed = true;
                     shims->log("Successfully captured all of multi-frame. Freeing memory.");
 

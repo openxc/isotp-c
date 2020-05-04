@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+// Using the the Stitch feature of April 2020
+#define MULTIFRAME_STITCH	1
+
 extern IsoTpShims SHIMS;
 extern IsoTpReceiveHandle RECEIVE_HANDLE;
 
@@ -83,7 +86,6 @@ START_TEST (test_receive_single_frame)
 }
 END_TEST
 
-#define MULTIFRAME_STITCH	1
 
 START_TEST (test_receive_multi_frame)
 {
@@ -114,9 +116,18 @@ START_TEST (test_receive_multi_frame)
     ck_assert_int_eq(last_message_received_arb_id, 0x2a);
 #if (MULTIFRAME_STITCH==1)
     ck_assert_int_eq(last_message_received_payload_size, 0x0a);
+    ck_assert_int_eq(last_message_received_payload[0], 0x49);
+    ck_assert_int_eq(last_message_received_payload[1], 0x02);
+    ck_assert_int_eq(last_message_received_payload[2], 0x01);
+    ck_assert_int_eq(last_message_received_payload[3], 0x55);
+    ck_assert_int_eq(last_message_received_payload[4], 0x41);
+    ck_assert_int_eq(last_message_received_payload[5], 0x30);
+    ck_assert_int_eq(last_message_received_payload[6], 0x34);
+    ck_assert_int_eq(last_message_received_payload[7], 0x35);
+    ck_assert_int_eq(last_message_received_payload[8], 0x32);
+    ck_assert_int_eq(last_message_received_payload[9], 0x34);
 #else
     ck_assert_int_eq(last_message_received_payload_size, 0x14);
-#endif
     ck_assert_int_eq(last_message_received_payload[0], 0x49);
     ck_assert_int_eq(last_message_received_payload[1], 0x02);
     ck_assert_int_eq(last_message_received_payload[2], 0x01);
@@ -137,6 +148,7 @@ START_TEST (test_receive_multi_frame)
     ck_assert_int_eq(last_message_received_payload[17], 0x35);
     ck_assert_int_eq(last_message_received_payload[18], 0x32);
     ck_assert_int_eq(last_message_received_payload[19], 0x34);
+#endif
 }
 END_TEST
 

@@ -83,6 +83,8 @@ START_TEST (test_receive_single_frame)
 }
 END_TEST
 
+#define MULTIFRAME_STITCH	1
+
 START_TEST (test_receive_multi_frame)
 {
     const uint8_t data0[CAN_MESSAGE_BYTE_SIZE] = {0x10, 0x14, 0x49, 0x02, 0x01, 0x31, 0x46, 0x4d};
@@ -110,7 +112,11 @@ START_TEST (test_receive_multi_frame)
     fail_unless(message2.multi_frame);
 
     ck_assert_int_eq(last_message_received_arb_id, 0x2a);
+#if (MULTIFRAME_STITCH==1)
+    ck_assert_int_eq(last_message_received_payload_size, 0x0a);
+#else
     ck_assert_int_eq(last_message_received_payload_size, 0x14);
+#endif
     ck_assert_int_eq(last_message_received_payload[0], 0x49);
     ck_assert_int_eq(last_message_received_payload[1], 0x02);
     ck_assert_int_eq(last_message_received_payload[2], 0x01);

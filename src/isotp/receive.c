@@ -62,6 +62,7 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
         payload: {0},
         size: 0
     };
+    int headersize = 3;
 
     if(size < 1) {
         return message;
@@ -119,14 +120,28 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
             //messages. That way we don't have to allocate 4k of memory 
             //for each multi-frame response.
             uint8_t* combined_payload = NULL;
+#if (MULTIFRAME==1)
+            // Only need space for the header for stitched multiframe
+            combined_payload = allocate(headersize);
+#else
             combined_payload = allocate(payload_length);
+#endif
 
             if(combined_payload == NULL) {
                 shims->log("Unable to allocate memory for multi-frame response.");
                 break;
             }
 
+#if (MULTIFRAME==1)
+            // Only need the header for stitched multiframe
+            // Since we are no longer collecting the parts and passing the total response at the
+            // end, we do not need to store it which is what combined_payload was for.  We just
+            // need to keep the header for the data which is only 3 bytes
+            // TODO: Fix tests/common.c - (OUR_MAX_ISO...) unit test
+            memcpy(combined_payload, &data[2], headersize);
+#else
             memcpy(combined_payload, &data[2], CAN_MESSAGE_BYTE_SIZE - 2);
+#endif
             handle->receive_buffer = combined_payload;
             handle->received_buffer_size = CAN_MESSAGE_BYTE_SIZE - 2;
             handle->incoming_message_size = payload_length;
@@ -148,7 +163,9 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
             message.multi_frame = true;
 
             if(remaining_bytes > 7) {   // If > 7 then there will be another frame
+#if (MULTIFRAME!=1)
                 memcpy(&handle->receive_buffer[start_index], &data[1], CAN_MESSAGE_BYTE_SIZE - 1);
+#endif
                 handle->received_buffer_size = start_index + 7;
 
                 // 4/27/2020 - Return Partial Frame into message
@@ -156,10 +173,11 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
                 message.size = CAN_MESSAGE_BYTE_SIZE - 1;
 
             } else {
+#if (MULTIFRAME!=1)
                 memcpy(&handle->receive_buffer[start_index], &data[1], remaining_bytes);
+#endif
                 handle->received_buffer_size = start_index + remaining_bytes;
 
-                // TODO: When receive_buffer is reduced, this condition will need to change
                 if(handle->received_buffer_size != handle->incoming_message_size){
                     free_allocated(handle->receive_buffer);
                     handle->success = false;
@@ -168,7 +186,6 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
 #if (MULTIFRAME==1)
                     // Copy the 3 bytes of header and Only copy the last partial
                     // into message.payload
-                    int headersize = 3;
                     memcpy(message.payload,&handle->receive_buffer[0], headersize);
                     memcpy(&message.payload[headersize],&data[1], remaining_bytes);
                     free_allocated(handle->receive_buffer);

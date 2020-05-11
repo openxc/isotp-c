@@ -7,8 +7,6 @@
 
 #define ARBITRATION_ID_OFFSET 0x8
 
-#define MULTIFRAME  1
-
 static void isotp_complete_receive(IsoTpReceiveHandle* handle, IsoTpMessage* message) {
     if(handle->message_received_callback != NULL) {
         handle->message_received_callback(message);
@@ -120,7 +118,7 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
             //messages. That way we don't have to allocate 4k of memory 
             //for each multi-frame response.
             uint8_t* combined_payload = NULL;
-#if (MULTIFRAME==1)
+#if (STITCH_MULTIFRAME==1)
             // Only need space for the header for stitched multiframe
             combined_payload = allocate(headersize);
 #else
@@ -132,7 +130,7 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
                 break;
             }
 
-#if (MULTIFRAME==1)
+#if (STITCH_MULTIFRAME==1)
             // Only need the header for stitched multiframe
             // Since we are no longer collecting the parts and passing the total response at the
             // end, we do not need to store it which is what combined_payload was for.  We just
@@ -163,7 +161,8 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
             message.multi_frame = true;
 
             if(remaining_bytes > 7) {   // If > 7 then there will be another frame
-#if (MULTIFRAME!=1)
+#if (STITCH_MULTIFRAME!=1)
+                // Only need to accumulate the message when not stitching in client
                 memcpy(&handle->receive_buffer[start_index], &data[1], CAN_MESSAGE_BYTE_SIZE - 1);
 #endif
                 handle->received_buffer_size = start_index + 7;
@@ -173,7 +172,8 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
                 message.size = CAN_MESSAGE_BYTE_SIZE - 1;
 
             } else {
-#if (MULTIFRAME!=1)
+#if (STITCH_MULTIFRAME!=1)
+                // Only need to accumulate the message when not stitching in client
                 memcpy(&handle->receive_buffer[start_index], &data[1], remaining_bytes);
 #endif
                 handle->received_buffer_size = start_index + remaining_bytes;
@@ -183,7 +183,7 @@ IsoTpMessage isotp_continue_receive(IsoTpShims* shims,
                     handle->success = false;
                     shims->log("Error capturing all bytes of multi-frame. Freeing memory.");
                 } else {
-#if (MULTIFRAME==1)
+#if (STITCH_MULTIFRAME==1)
                     // Copy the 3 bytes of header and Only copy the last partial
                     // into message.payload
                     memcpy(message.payload,&handle->receive_buffer[0], headersize);

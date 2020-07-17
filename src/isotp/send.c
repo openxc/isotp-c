@@ -56,7 +56,7 @@ IsoTpSendHandle isotp_send_multi_frame(IsoTpShims* shims, IsoTpMessage* message,
     return handle;
 }
 
-IsoTpSendHandle isotp_send(IsoTpShims* shims, const uint16_t arbitration_id,
+IsoTpSendHandle isotp_send(IsoTpShims* shims, const uint32_t arbitration_id,
         const uint8_t payload[], uint16_t size,
         IsoTpMessageSentHandler callback) {
     IsoTpMessage message = {
@@ -73,7 +73,7 @@ IsoTpSendHandle isotp_send(IsoTpShims* shims, const uint16_t arbitration_id,
 }
 
 bool isotp_continue_send(IsoTpShims* shims, IsoTpSendHandle* handle,
-        const uint16_t arbitration_id, const uint8_t data[],
+        const uint32_t arbitration_id, const uint8_t data[],
         const uint8_t size) {
     // TODO this will need to be tested when we add multi-frame support,
     // which is when it'll be necessary to pass in CAN messages to SENDING

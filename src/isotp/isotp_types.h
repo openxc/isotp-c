@@ -5,8 +5,19 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+// 1=Turn on the stitch Multiframe feature of April 2020
+// 0=No stitching so accumulate all partials and pass full Diag response
+//           when all Diag partials have been received.
+#define STITCH_MULTIFRAME  1
+
+
 #define CAN_MESSAGE_BYTE_SIZE 8
+#if (STITCH_MULTIFRAME==1)
 #define MAX_ISO_TP_MESSAGE_SIZE 4096
+#else
+// Really This could be reduced to 8 bytes
+#define MAX_ISO_TP_MESSAGE_SIZE 16
+#endif
 // TODO we want to avoid malloc, and we can't be allocated 4K on the stack for
 // each IsoTpMessage, so for now we're setting an artificial max message size
 // here - for most multi-frame use cases, 256 bytes is plenty.

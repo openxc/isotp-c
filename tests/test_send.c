@@ -29,7 +29,7 @@ extern void setup();
 START_TEST (test_send_empty_payload)
 {
     SHIMS.frame_padding = false;
-    uint16_t arbitration_id = 0x2a;
+    uint32_t arbitration_id = 0x2a;
     IsoTpSendHandle handle = isotp_send(&SHIMS, arbitration_id, NULL, 0, message_sent);
     fail_unless(handle.success);
     fail_unless(handle.completed);
@@ -49,7 +49,7 @@ START_TEST (test_send_single_frame)
 {
     SHIMS.frame_padding = false;
     const uint8_t payload[] = {0x12, 0x34};
-    uint16_t arbitration_id = 0x2a;
+    uint32_t arbitration_id = 0x2a;
     isotp_send(&SHIMS, arbitration_id, payload, sizeof(payload), message_sent);
     ck_assert_int_eq(last_message_sent_arb_id, arbitration_id);
     fail_unless(last_message_sent_status);
@@ -70,7 +70,7 @@ START_TEST (test_send_multi_frame)
 {
     const uint8_t payload[] = {0x12, 0x34, 0x56, 0x78, 0x90, 0x01, 0x23,
             0x45, 0x67, 0x89};
-    uint16_t arbitration_id = 0x2a;
+    uint32_t arbitration_id = 0x2a;
     IsoTpSendHandle handle = isotp_send(&SHIMS, arbitration_id, payload, sizeof(payload),
             message_sent);
     fail_unless(handle.completed);
